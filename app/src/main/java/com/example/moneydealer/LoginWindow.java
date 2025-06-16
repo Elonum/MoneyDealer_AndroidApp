@@ -58,8 +58,9 @@ public class LoginWindow extends AppCompatActivity {
         });
 
         tvRegister.setOnClickListener(v -> {
-            Intent intent = new Intent(LoginWindow.this, RegisterWindow.class);
+            Intent intent = new Intent(LoginWindow.this, RegistrationWindow.class);
             startActivity(intent);
+            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
             finish();
         });
     }
