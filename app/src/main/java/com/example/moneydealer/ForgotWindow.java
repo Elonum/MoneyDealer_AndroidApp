@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -17,18 +19,18 @@ import androidx.core.view.WindowInsetsCompat;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
-public class LoginWindow extends AppCompatActivity {
+public class ForgotWindow extends AppCompatActivity {
 
-    private TextInputLayout tilEmail, tilPassword;
-    private TextInputEditText etEmail, etPassword;
-    private Button btnLogin;
-    private TextView tvForgotPassword, tvRegister;
+    private TextInputLayout tilEmail;
+    private TextInputEditText etEmail;
+    private Button btnSend;
+    private TextView tvLogin;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        setContentView(R.layout.login_window);
+        setContentView(R.layout.forgot_window);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
@@ -37,42 +39,31 @@ public class LoginWindow extends AppCompatActivity {
 
         initializeViews();
         setupClickListeners();
+        setupTextAnimations();
     }
 
     private void initializeViews() {
         tilEmail = findViewById(R.id.til_email);
-        tilPassword = findViewById(R.id.til_password);
         etEmail = findViewById(R.id.et_email);
-        etPassword = findViewById(R.id.et_password);
-        btnLogin = findViewById(R.id.btn_login);
-        tvForgotPassword = findViewById(R.id.tv_forgot_password);
-        tvRegister = findViewById(R.id.tv_register);
+        btnSend = findViewById(R.id.btn_send);
+        tvLogin = findViewById(R.id.tv_login);
     }
 
     private void setupClickListeners() {
-        btnLogin.setOnClickListener(v -> attemptLogin());
+        btnSend.setOnClickListener(v -> attemptPasswordReset());
 
-        tvRegister.setOnClickListener(v -> {
-            Intent intent = new Intent(LoginWindow.this, RegistrationWindow.class);
+        tvLogin.setOnClickListener(v -> {
+            Intent intent = new Intent(ForgotWindow.this, LoginWindow.class);
             startActivity(intent);
-            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
-            finish();
-        });
-
-        tvForgotPassword.setOnClickListener(v -> {
-            Intent intent = new Intent(LoginWindow.this, ForgotWindow.class);
-            startActivity(intent);
-            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+            overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
             finish();
         });
     }
 
-    private void attemptLogin() {
+    private void attemptPasswordReset() {
         tilEmail.setError(null);
-        tilPassword.setError(null);
 
         String email = etEmail.getText().toString().trim();
-        String password = etPassword.getText().toString().trim();
 
         boolean cancel = false;
         View focusView = null;
@@ -91,27 +82,14 @@ public class LoginWindow extends AppCompatActivity {
             cancel = true;
         }
 
-        if (TextUtils.isEmpty(password)) {
-            tilPassword.setError("Введите пароль");
-            focusView = etPassword;
-            cancel = true;
-        } else if (!isPasswordValid(password)) {
-            tilPassword.setError("Пароль должен содержать минимум 6 символов");
-            focusView = etPassword;
-            cancel = true;
-        } else if (password.contains(" ")) {
-            tilPassword.setError("Пароль не должен содержать пробелы");
-            focusView = etPassword;
-            cancel = true;
-        }
-
         if (cancel) {
             focusView.requestFocus();
         } else {
-            // TODO: Implement actual login logic
-            Toast.makeText(this, "Вход выполнен успешно", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(LoginWindow.this, MainWindow.class);
+            // TODO: Implement actual password reset logic
+            Toast.makeText(this, "Инструкции по восстановлению пароля отправлены на ваш email", Toast.LENGTH_LONG).show();
+            Intent intent = new Intent(ForgotWindow.this, LoginWindow.class);
             startActivity(intent);
+            overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
             finish();
         }
     }
@@ -120,7 +98,16 @@ public class LoginWindow extends AppCompatActivity {
         return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches();
     }
 
-    private boolean isPasswordValid(String password) {
-        return password.length() >= 6;
+    private void setupTextAnimations() {
+        TextView tvForgotTitle = findViewById(R.id.tv_forgot_title);
+        TextView tvForgotDescription = findViewById(R.id.tv_forgot_description);
+
+        Animation fadeInSlideUp = AnimationUtils.loadAnimation(this, R.anim.fade_in_slide_up);
+
+        tvForgotTitle.startAnimation(fadeInSlideUp);
+
+        Animation fadeInSlideUpDelayed = AnimationUtils.loadAnimation(this, R.anim.fade_in_slide_up);
+        fadeInSlideUpDelayed.setStartOffset(200);
+        tvForgotDescription.startAnimation(fadeInSlideUpDelayed);
     }
-}
+} 
