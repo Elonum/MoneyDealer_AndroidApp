@@ -4,7 +4,10 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,7 +25,7 @@ public class LoginWindow extends AppCompatActivity {
     private TextInputLayout tilEmail, tilPassword;
     private TextInputEditText etEmail, etPassword;
     private Button btnLogin;
-    private TextView tvForgotPassword, tvRegister;
+    private TextView tvRegister, tvForgotPassword;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,8 +48,8 @@ public class LoginWindow extends AppCompatActivity {
         etEmail = findViewById(R.id.et_email);
         etPassword = findViewById(R.id.et_password);
         btnLogin = findViewById(R.id.btn_login);
-        tvForgotPassword = findViewById(R.id.tv_forgot_password);
         tvRegister = findViewById(R.id.tv_register);
+        tvForgotPassword = findViewById(R.id.tv_forgot_password);
     }
 
     private void setupClickListeners() {
@@ -85,10 +88,6 @@ public class LoginWindow extends AppCompatActivity {
             tilEmail.setError("Некорректный email");
             focusView = etEmail;
             cancel = true;
-        } else if (email.contains(" ")) {
-            tilEmail.setError("Email не должен содержать пробелы");
-            focusView = etEmail;
-            cancel = true;
         }
 
         if (TextUtils.isEmpty(password)) {
@@ -99,18 +98,27 @@ public class LoginWindow extends AppCompatActivity {
             tilPassword.setError("Пароль должен содержать минимум 6 символов");
             focusView = etPassword;
             cancel = true;
-        } else if (password.contains(" ")) {
-            tilPassword.setError("Пароль не должен содержать пробелы");
-            focusView = etPassword;
-            cancel = true;
         }
 
         if (cancel) {
             focusView.requestFocus();
         } else {
-            // TODO: Implement actual login logic
-            Toast.makeText(this, "Вход выполнен успешно", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(LoginWindow.this, MainWindow.class);
+            // TODO: Implement actual login logic (e.g., API call)
+
+            // For demonstration, assume login is successful
+            Toast.makeText(this, "Вход успешен", Toast.LENGTH_SHORT).show();
+
+            // Simulate fetching selected currency from backend
+            String selectedCurrency = fetchSelectedCurrencyFromBackend(email); // Pass user ID or email to fetch specific currency
+
+            Intent intent;
+            if (selectedCurrency != null && !selectedCurrency.isEmpty()) {
+                // Currency already selected, go to Main Window
+                intent = new Intent(LoginWindow.this, MainWindow.class);
+            } else {
+                // No currency selected, go to Currency Selection Window
+                intent = new Intent(LoginWindow.this, CurrencyWindow.class);
+            }
             startActivity(intent);
             finish();
         }
@@ -123,4 +131,20 @@ public class LoginWindow extends AppCompatActivity {
     private boolean isPasswordValid(String password) {
         return password.length() >= 6;
     }
+
+    private String fetchSelectedCurrencyFromBackend(String userIdentifier) {
+        // This method would make an API call to your backend to get the user's selected currency.
+        // Example (conceptual): ApiService.getUserCurrency(userIdentifier, new Callback() { ... });
+        // For now, it's just a placeholder.
+        System.out.println("Simulating fetching currency from backend for: " + userIdentifier);
+
+        // For demonstration, let's assume a currency is returned for a specific user, or null/empty otherwise.
+        // You would replace this with actual backend logic.
+        if (userIdentifier.equals("test@example.com")) { // Example user with a saved currency
+            return "USD";
+        } else {
+            return null; // No currency saved for this user
+        }
+    }
+
 }

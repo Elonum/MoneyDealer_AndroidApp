@@ -16,6 +16,9 @@
             android:name=".MainWindow"
             android:exported="false" />
         <activity
+            android:name=".CurrencyWindow"
+            android:exported="false" />
+        <activity
             android:name=".ForgotWindow"
             android:exported="false" />
         <activity
