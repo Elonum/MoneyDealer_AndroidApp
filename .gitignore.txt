@@ -1,0 +1,22 @@
+# Android-специфичные файлы
+/build
+/.gradle
+/local.properties
+*.apk
+*.aab
+*.keystore
+
+# Файлы IDE
+/.idea
+*.iml
+.navigation/
+captures/
+
+# Системные файлы
+.DS_Store
+*.log
+*.orig
+
+# Gradle-кеш
+gradle-app.setting
+!gradle-wrapper.jar
