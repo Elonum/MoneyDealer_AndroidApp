@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "163409454481",
+    "firebase_url": "https://moneydealer-666-default-rtdb.firebaseio.com",
+    "project_id": "moneydealer-666",
+    "storage_bucket": "moneydealer-666.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:163409454481:android:d40c9764000cf8027da630",
+        "android_client_info": {
+          "package_name": "com.example.moneydealer"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDjxpjw66PkhLj7XPyg2MDZ6uDvn6dNMqg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -4,10 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -19,6 +16,14 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.auth.FirebaseAuthException;
 
 public class LoginWindow extends AppCompatActivity {
 
@@ -26,6 +31,9 @@ public class LoginWindow extends AppCompatActivity {
     private TextInputEditText etEmail, etPassword;
     private Button btnLogin;
     private TextView tvRegister, tvForgotPassword;
+
+    private FirebaseAuth auth;
+    private DatabaseReference usersRef;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +45,9 @@ public class LoginWindow extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        auth = FirebaseAuth.getInstance();
+        usersRef = FirebaseDatabase.getInstance().getReference("users");
 
         initializeViews();
         setupClickListeners();
@@ -56,15 +67,13 @@ public class LoginWindow extends AppCompatActivity {
         btnLogin.setOnClickListener(v -> attemptLogin());
 
         tvRegister.setOnClickListener(v -> {
-            Intent intent = new Intent(LoginWindow.this, RegistrationWindow.class);
-            startActivity(intent);
+            startActivity(new Intent(LoginWindow.this, RegistrationWindow.class));
             overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
             finish();
         });
 
         tvForgotPassword.setOnClickListener(v -> {
-            Intent intent = new Intent(LoginWindow.this, ForgotWindow.class);
-            startActivity(intent);
+            startActivity(new Intent(LoginWindow.this, ForgotWindow.class));
             overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
             finish();
         });
@@ -84,7 +93,7 @@ public class LoginWindow extends AppCompatActivity {
             tilEmail.setError("Введите email");
             focusView = etEmail;
             cancel = true;
-        } else if (!isEmailValid(email)) {
+        } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             tilEmail.setError("Некорректный email");
             focusView = etEmail;
             cancel = true;
@@ -92,59 +101,94 @@ public class LoginWindow extends AppCompatActivity {
 
         if (TextUtils.isEmpty(password)) {
             tilPassword.setError("Введите пароль");
-            focusView = etPassword;
+            if (focusView == null) focusView = etPassword;
             cancel = true;
-        } else if (!isPasswordValid(password)) {
+        } else if (password.length() < 6) {
             tilPassword.setError("Пароль должен содержать минимум 6 символов");
-            focusView = etPassword;
+            if (focusView == null) focusView = etPassword;
             cancel = true;
         }
 
         if (cancel) {
             focusView.requestFocus();
-        } else {
-            // TODO: Implement actual login logic (e.g., API call)
-
-            // For demonstration, assume login is successful
-            Toast.makeText(this, "Вход успешен", Toast.LENGTH_SHORT).show();
-
-            // Simulate fetching selected currency from backend
-            String selectedCurrency = fetchSelectedCurrencyFromBackend(email); // Pass user ID or email to fetch specific currency
-
-            Intent intent;
-            if (selectedCurrency != null && !selectedCurrency.isEmpty()) {
-                // Currency already selected, go to Main Window
-                intent = new Intent(LoginWindow.this, MainWindow.class);
-            } else {
-                // No currency selected, go to Currency Selection Window
-                intent = new Intent(LoginWindow.this, CurrencyWindow.class);
-            }
-            startActivity(intent);
-            finish();
+            return;
         }
+
+        auth.fetchSignInMethodsForEmail(email)
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        boolean isRegistered = !task.getResult()
+                                .getSignInMethods()
+                                .isEmpty();
+
+                        if (!isRegistered) {
+                            tilEmail.setError("Пользователь с таким email не зарегистрирован");
+                            etEmail.requestFocus();
+                        } else {
+                            signInWithPassword(email, password);
+                        }
+                    } else {
+                        Toast.makeText(
+                                LoginWindow.this,
+                                "Ошибка проверки email: " + task.getException().getMessage(),
+                                Toast.LENGTH_LONG
+                        ).show();
+                    }
+                });
     }
 
-    private boolean isEmailValid(String email) {
-        return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches();
+    private void signInWithPassword(String email, String password) {
+        auth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        FirebaseUser user = auth.getCurrentUser();
+                        if (user != null) checkUserCurrency(user.getUid());
+                    } else {
+                        Exception e = task.getException();
+                        String errorCode = null;
+                        if (e instanceof com.google.firebase.auth.FirebaseAuthException) {
+                            errorCode = ((com.google.firebase.auth.FirebaseAuthException) e).getErrorCode();
+                        }
+
+                        // Ошибки пароля и прочие
+                        if ("ERROR_WRONG_PASSWORD".equals(errorCode)) {
+                            tilPassword.setError("Неверный пароль");
+                            etPassword.requestFocus();
+                        }
+                        else {
+                            Toast.makeText(
+                                    LoginWindow.this,
+                                    "Ошибка входа: " + e.getMessage(),
+                                    Toast.LENGTH_LONG
+                            ).show();
+                        }
+                    }
+                });
     }
 
-    private boolean isPasswordValid(String password) {
-        return password.length() >= 6;
+    private void checkUserCurrency(String uid) {
+        usersRef.child(uid).child("selectedCurrency")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot snapshot) {
+                        String currency = snapshot.getValue(String.class);
+                        Intent intent;
+                        if (currency != null && !currency.isEmpty()) {
+                            intent = new Intent(LoginWindow.this, MainWindow.class);
+                            intent.putExtra("selectedCurrency", currency);
+                        } else {
+                            intent = new Intent(LoginWindow.this, CurrencyWindow.class);
+                        }
+                        startActivity(intent);
+                        finish();
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError error) {
+                        Intent intent = new Intent(LoginWindow.this, CurrencyWindow.class);
+                        startActivity(intent);
+                        finish();
+                    }
+                });
     }
-
-    private String fetchSelectedCurrencyFromBackend(String userIdentifier) {
-        // This method would make an API call to your backend to get the user's selected currency.
-        // Example (conceptual): ApiService.getUserCurrency(userIdentifier, new Callback() { ... });
-        // For now, it's just a placeholder.
-        System.out.println("Simulating fetching currency from backend for: " + userIdentifier);
-
-        // For demonstration, let's assume a currency is returned for a specific user, or null/empty otherwise.
-        // You would replace this with actual backend logic.
-        if (userIdentifier.equals("test@example.com")) { // Example user with a saved currency
-            return "USD";
-        } else {
-            return null; // No currency saved for this user
-        }
-    }
-
 }
