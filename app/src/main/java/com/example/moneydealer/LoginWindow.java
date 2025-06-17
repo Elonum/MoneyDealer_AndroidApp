@@ -6,7 +6,6 @@ import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -23,7 +22,6 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.auth.FirebaseAuthException;
 
 public class LoginWindow extends AppCompatActivity {
 
@@ -84,7 +82,7 @@ public class LoginWindow extends AppCompatActivity {
         tilPassword.setError(null);
 
         String email = etEmail.getText().toString().trim();
-        String password = etPassword.getText().toString().trim();
+        String pass  = etPassword.getText().toString().trim();
 
         boolean cancel = false;
         View focusView = null;
@@ -99,11 +97,11 @@ public class LoginWindow extends AppCompatActivity {
             cancel = true;
         }
 
-        if (TextUtils.isEmpty(password)) {
+        if (TextUtils.isEmpty(pass)) {
             tilPassword.setError("Введите пароль");
             if (focusView == null) focusView = etPassword;
             cancel = true;
-        } else if (password.length() < 6) {
+        } else if (pass.length() < 6) {
             tilPassword.setError("Пароль должен содержать минимум 6 символов");
             if (focusView == null) focusView = etPassword;
             cancel = true;
@@ -114,53 +112,22 @@ public class LoginWindow extends AppCompatActivity {
             return;
         }
 
-        auth.fetchSignInMethodsForEmail(email)
-                .addOnCompleteListener(this, task -> {
-                    if (task.isSuccessful()) {
-                        boolean isRegistered = !task.getResult()
-                                .getSignInMethods()
-                                .isEmpty();
-
-                        if (!isRegistered) {
-                            tilEmail.setError("Пользователь с таким email не зарегистрирован");
-                            etEmail.requestFocus();
-                        } else {
-                            signInWithPassword(email, password);
-                        }
-                    } else {
-                        Toast.makeText(
-                                LoginWindow.this,
-                                "Ошибка проверки email: " + task.getException().getMessage(),
-                                Toast.LENGTH_LONG
-                        ).show();
-                    }
-                });
-    }
-
-    private void signInWithPassword(String email, String password) {
-        auth.signInWithEmailAndPassword(email, password)
+        auth.signInWithEmailAndPassword(email, pass)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
                         FirebaseUser user = auth.getCurrentUser();
-                        if (user != null) checkUserCurrency(user.getUid());
+                        if (user != null) {
+                            checkUserCurrency(user.getUid());
+                        }
                     } else {
-                        Exception e = task.getException();
-                        String errorCode = null;
-                        if (e instanceof com.google.firebase.auth.FirebaseAuthException) {
-                            errorCode = ((com.google.firebase.auth.FirebaseAuthException) e).getErrorCode();
+                        Exception ex = task.getException();
+                        if (ex instanceof com.google.firebase.auth.FirebaseAuthInvalidUserException) {
+                            tilEmail.setError("Пользователь с таким email не зарегистрирован");
+                            etEmail.requestFocus();
                         }
-
-                        // Ошибки пароля и прочие
-                        if ("ERROR_WRONG_PASSWORD".equals(errorCode)) {
-                            tilPassword.setError("Неверный пароль");
+                        else if (ex instanceof com.google.firebase.auth.FirebaseAuthInvalidCredentialsException) {
+                            tilPassword.setError("Неверный email или пароль");
                             etPassword.requestFocus();
-                        }
-                        else {
-                            Toast.makeText(
-                                    LoginWindow.this,
-                                    "Ошибка входа: " + e.getMessage(),
-                                    Toast.LENGTH_LONG
-                            ).show();
                         }
                     }
                 });
