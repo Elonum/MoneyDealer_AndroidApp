@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -28,6 +29,7 @@ public class RegistrationWindow extends AppCompatActivity {
     private TextInputLayout tilName, tilSurname, tilEmail, tilPassword, tilConfirmPassword;
     private TextInputEditText etName, etSurname, etEmail, etPassword, etConfirmPassword;
     private Button btnRegister;
+    private TextView tvLogin;
     private FirebaseAuth auth;
     private DatabaseReference usersRef;
 
@@ -43,7 +45,7 @@ public class RegistrationWindow extends AppCompatActivity {
             return insets;
         });
 
-        auth    = FirebaseAuth.getInstance();
+        auth = FirebaseAuth.getInstance();
         usersRef = FirebaseDatabase.getInstance().getReference("users");
 
         tilName            = findViewById(R.id.til_name);
@@ -57,8 +59,15 @@ public class RegistrationWindow extends AppCompatActivity {
         etPassword         = findViewById(R.id.et_password);
         etConfirmPassword  = findViewById(R.id.et_confirm_password);
         btnRegister        = findViewById(R.id.btn_register);
+        tvLogin            = findViewById(R.id.tv_login);
 
         btnRegister.setOnClickListener(v -> attemptRegistration());
+
+        tvLogin.setOnClickListener(v -> {
+            startActivity(new Intent(RegistrationWindow.this, LoginWindow.class));
+            overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
+            finish();
+        });
     }
 
     private void attemptRegistration() {
@@ -74,8 +83,8 @@ public class RegistrationWindow extends AppCompatActivity {
         String password        = etPassword.getText().toString().trim();
         String confirmPassword = etConfirmPassword.getText().toString().trim();
 
-        boolean cancel    = false;
-        View focusView    = null;
+        boolean cancel = false;
+        View focusView = null;
 
         if (TextUtils.isEmpty(name) || name.length() < 2 || !name.matches("[а-яА-ЯёЁa-zA-Z]+")) {
             tilName.setError("Введите корректное имя");
@@ -108,7 +117,6 @@ public class RegistrationWindow extends AppCompatActivity {
             return;
         }
 
-        // create account
         auth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
@@ -146,12 +154,10 @@ public class RegistrationWindow extends AppCompatActivity {
                         if (e instanceof FirebaseAuthUserCollisionException) {
                             tilEmail.setError("Пользователь с таким email уже существует");
                             etEmail.requestFocus();
-                        }
-                        else if (e instanceof FirebaseAuthInvalidCredentialsException) {
+                        } else if (e instanceof FirebaseAuthInvalidCredentialsException) {
                             tilEmail.setError("Некорректный формат email");
                             etEmail.requestFocus();
-                        }
-                        else {
+                        } else {
                             Toast.makeText(
                                     RegistrationWindow.this,
                                     "Ошибка регистрации: " + e.getMessage(),
