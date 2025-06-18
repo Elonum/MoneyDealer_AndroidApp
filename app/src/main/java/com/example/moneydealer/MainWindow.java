@@ -1,27 +1,34 @@
-// app/src/main/java/com/example/moneydealer/MainWindow.java
 package com.example.moneydealer;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.app.AlertDialog;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.GravityCompat;
 
 import com.example.moneydealer.data.FinanceRepository;
 import com.example.moneydealer.models.Category;
 import com.example.moneydealer.models.Transaction;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseError;
+import com.google.android.material.navigation.NavigationView;
+import androidx.drawerlayout.widget.DrawerLayout;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class MainWindow extends AppCompatActivity {
+public class        MainWindow extends AppCompatActivity {
 
     public static class CategoryBarItem {
         public String name;
@@ -49,11 +56,15 @@ public class MainWindow extends AppCompatActivity {
         });
 
         repo = new FinanceRepository();
-
         repo.seedDefaultCategoriesIfEmpty();
-
         categories = new ArrayList<>();
         loadCategoriesAndTransactions();
+
+        // --- Navigation Drawer ---
+        DrawerLayout drawerLayout = findViewById(R.id.drawer_layout);
+        NavigationView navigationView = findViewById(R.id.navigation_view);
+        ImageView menuIcon = findViewById(R.id.menuIcon);
+        DrawerHelper.setupDrawer(this, drawerLayout, navigationView, menuIcon);
     }
 
     private void loadCategoriesAndTransactions() {
