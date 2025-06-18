@@ -4,8 +4,8 @@ public class Transaction {
     public String id;
     public float amount;
     public String categoryId;
-    public String type;        // "expense" или "income"
-    public long timestamp;     // время в миллисекундах
+    public String type;
+    public long timestamp;
     public String comment;
 
     public Transaction() {}

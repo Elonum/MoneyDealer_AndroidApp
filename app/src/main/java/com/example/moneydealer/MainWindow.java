@@ -28,7 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class        MainWindow extends AppCompatActivity {
+public class MainWindow extends AppCompatActivity {
 
     public static class CategoryBarItem {
         public String name;

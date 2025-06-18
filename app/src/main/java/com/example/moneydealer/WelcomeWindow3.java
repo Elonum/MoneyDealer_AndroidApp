@@ -139,7 +139,7 @@ public class WelcomeWindow3 extends AppCompatActivity {
                     startActivity(intent);
                     overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
                     finish();
-                }, 3000);
+                }, 2000);
             }
 
             @Override

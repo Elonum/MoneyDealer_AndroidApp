@@ -18,9 +18,11 @@ public class DrawerHelper {
         navigationView.setNavigationItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_profile) {
-                // TODO: Открыть профиль
+                Intent intent = new Intent(activity, ProfileWindow.class);
+                activity.startActivity(intent);
             } else if (id == R.id.nav_main) {
-                // TODO: Открыть главную (MainWindow)
+                Intent intent = new Intent(activity, MainWindow.class);
+                activity.startActivity(intent);
             } else if (id == R.id.nav_cash_accounts) {
                 // TODO: Открыть счета
             } else if (id == R.id.nav_regular) {
