@@ -28,7 +28,8 @@ public class DrawerHelper {
             } else if (id == R.id.nav_regular) {
                 // TODO: Открыть регулярные платежи
             } else if (id == R.id.nav_categories) {
-                // TODO: Открыть категории
+                Intent intent = new Intent(activity, CategoryWindow.class);
+                activity.startActivity(intent);
             } else if (id == R.id.nav_rate) {
                 // TODO: Оценить приложение
             } else if (id == R.id.nav_logout) {
