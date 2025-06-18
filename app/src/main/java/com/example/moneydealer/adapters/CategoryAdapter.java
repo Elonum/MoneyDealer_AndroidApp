@@ -38,13 +38,23 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
     public void onBindViewHolder(@NonNull CategoryViewHolder holder, int position) {
         Category category = categories.get(position);
         holder.tvCategoryName.setText(category.name);
-        // Цвет круга
         holder.colorCircle.getBackground().setColorFilter(category.color, PorterDuff.Mode.SRC_IN);
-        // Долгое нажатие для удаления
+
         holder.itemView.setOnLongClickListener(v -> {
             if (deleteListener != null) deleteListener.onDelete(category);
             return true;
         });
+
+        holder.itemView.setAlpha(0f);
+        holder.itemView.setScaleX(0.8f);
+        holder.itemView.setScaleY(0.8f);
+        holder.itemView.animate()
+            .alpha(1f)
+            .scaleX(1f)
+            .scaleY(1f)
+            .setDuration(500)
+            .setStartDelay(position * 60)
+            .start();
     }
 
     @Override
