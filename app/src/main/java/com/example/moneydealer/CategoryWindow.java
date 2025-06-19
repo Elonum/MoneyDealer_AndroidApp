@@ -44,6 +44,9 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.widget.RadioGroup;
+import android.widget.RadioButton;
+
 public class CategoryWindow extends AppCompatActivity {
     private RecyclerView rvCategories;
     private Button btnAddCategory;
@@ -67,6 +70,7 @@ public class CategoryWindow extends AppCompatActivity {
     };
 
     private int selectedColor = COLORS[0];
+    private String selectedType = "expense";
 
     // ItemDecoration для равных отступов
     private static class GridSpacingItemDecoration extends RecyclerView.ItemDecoration {
@@ -117,8 +121,26 @@ public class CategoryWindow extends AppCompatActivity {
         rvCategories.setLayoutManager(new GridLayoutManager(this, 2));
         int spacing = getResources().getDimensionPixelSize(R.dimen.category_grid_spacing);
         rvCategories.addItemDecoration(new GridSpacingItemDecoration(2, spacing, true));
-        adapter = new CategoryAdapter(this, categories, this::onDeleteCategoryWithDialog);
-        rvCategories.setAdapter(adapter);
+
+        // Добавляем переключатель для фильтрации категорий по типу
+        LinearLayout topBar = findViewById(R.id.topBar);
+        RadioGroup rgType = new RadioGroup(this);
+        rgType.setOrientation(RadioGroup.HORIZONTAL);
+        RadioButton rbExpense = new RadioButton(this);
+        rbExpense.setText("Расходы");
+        rbExpense.setId(View.generateViewId());
+        rbExpense.setChecked(true);
+        RadioButton rbIncome = new RadioButton(this);
+        rbIncome.setText("Доходы");
+        rbIncome.setId(View.generateViewId());
+        rgType.addView(rbExpense);
+        rgType.addView(rbIncome);
+        topBar.addView(rgType);
+        rgType.setOnCheckedChangeListener((group, checkedId) -> {
+            if (checkedId == rbExpense.getId()) selectedType = "expense";
+            else selectedType = "income";
+            adapter.notifyDataSetChanged();
+        });
 
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser == null) {
@@ -142,7 +164,24 @@ public class CategoryWindow extends AppCompatActivity {
                     Category cat = catSnap.getValue(Category.class);
                     if (cat != null) categories.add(cat);
                 }
-                adapter.notifyDataSetChanged();
+                adapter = new CategoryAdapter(CategoryWindow.this, categories, CategoryWindow.this::onDeleteCategoryWithDialog) {
+                    @Override
+                    public int getItemCount() {
+                        int count = 0;
+                        for (Category c : categories) if (c.type != null && c.type.equals(selectedType)) count++;
+                        return count;
+                    }
+                    @Override
+                    public void onBindViewHolder(@NonNull CategoryViewHolder holder, int position) {
+                        int idx = -1, found = -1;
+                        for (Category c : categories) {
+                            if (c.type != null && c.type.equals(selectedType)) idx++;
+                            if (idx == position) { found = categories.indexOf(c); break; }
+                        }
+                        if (found != -1) super.onBindViewHolder(holder, found);
+                    }
+                };
+                rvCategories.setAdapter(adapter);
                 handleEmptyState();
                 runAppearAnimation();
             }
@@ -178,6 +217,7 @@ public class CategoryWindow extends AppCompatActivity {
         EditText etCategoryName = dialogView.findViewById(R.id.etCategoryName);
         LinearLayout colorPicker = dialogView.findViewById(R.id.colorPicker);
         Button btnSave = dialogView.findViewById(R.id.btnSaveCategory);
+        RadioGroup rgType = dialogView.findViewById(R.id.rgCategoryType);
 
         // Динамически добавляем цветные круги
         for (int color : COLORS) {
@@ -213,7 +253,6 @@ public class CategoryWindow extends AppCompatActivity {
                 etCategoryName.setError("Введите название");
                 return;
             }
-            // Проверка на уникальность (без учёта регистра и пробелов)
             for (Category cat : categories) {
                 if (cat.name.replaceAll("\\s+", "").equalsIgnoreCase(name.replaceAll("\\s+", ""))) {
                     etCategoryName.setError("Такая категория уже есть");
@@ -221,7 +260,8 @@ public class CategoryWindow extends AppCompatActivity {
                 }
             }
             String id = categoriesRef.push().getKey();
-            Category cat = new Category(id, name, selectedColor, "expense");
+            String type = rgType.getCheckedRadioButtonId() == dialogView.findViewById(R.id.rbIncome).getId() ? "income" : "expense";
+            Category cat = new Category(id, name, selectedColor, type);
             categoriesRef.child(id).setValue(cat);
             dialog.dismiss();
         });
