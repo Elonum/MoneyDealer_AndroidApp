@@ -77,6 +77,8 @@ public class AccountWindow extends AppCompatActivity {
 
         loadUserCurrencyAndAccounts();
         setupListeners();
+        accountAdapter.setOnAccountLongClickListener(this::onDeleteAccountWithDialog);
+        accountAdapter.setOnAccountClickListener(this::onEditAccountNameDialog);
     }
 
     private void loadUserCurrencyAndAccounts() {
@@ -164,6 +166,68 @@ public class AccountWindow extends AppCompatActivity {
             usersRef.child(currentUser.getUid()).child("accounts").child(id).setValue(account)
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(this, "Счёт добавлен", Toast.LENGTH_SHORT).show();
+                    loadAccounts();
+                    dialog.dismiss();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Ошибка: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                });
+        });
+        dialog.show();
+    }
+
+    private void onDeleteAccountWithDialog(Account account) {
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Удалить счёт?")
+            .setMessage("Вы уверены, что хотите удалить счёт '" + account.name + "'?")
+            .setPositiveButton("Удалить", (dialog, which) -> onDeleteAccount(account))
+            .setNegativeButton("Отмена", null)
+            .show();
+    }
+
+    private void onDeleteAccount(Account account) {
+        if (currentUser == null) return;
+        usersRef.child(currentUser.getUid()).child("accounts").child(account.id).removeValue((error, ref) -> {
+            if (error == null) {
+                Toast.makeText(this, "Счёт удалён", Toast.LENGTH_SHORT).show();
+                loadAccounts();
+            } else {
+                Toast.makeText(this, "Ошибка удаления: " + error.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    private void onEditAccountNameDialog(Account account) {
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_account, null);
+        android.widget.EditText etAccountName = dialogView.findViewById(R.id.etAccountName);
+        android.widget.EditText etInitialBalance = dialogView.findViewById(R.id.etInitialBalance);
+        etAccountName.setText(account.name);
+        etInitialBalance.setVisibility(View.GONE); // Не даём менять баланс при редактировании
+        android.widget.Button btnSave = dialogView.findViewById(R.id.btnSaveAccount);
+        btnSave.setText("Сохранить");
+        builder.setView(dialogView);
+        androidx.appcompat.app.AlertDialog dialog = builder.create();
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(androidx.core.content.ContextCompat.getColor(this, R.color.background_color)));
+        }
+        btnSave.setOnClickListener(v -> {
+            String newName = etAccountName.getText().toString().trim();
+            if (newName.isEmpty()) {
+                etAccountName.setError("Введите название счёта");
+                return;
+            }
+            // Проверка на уникальность имени (без учёта регистра и пробелов)
+            for (Account acc : accounts) {
+                if (!acc.id.equals(account.id) && acc.name.replaceAll("\\s+", "").equalsIgnoreCase(newName.replaceAll("\\s+", ""))) {
+                    etAccountName.setError("Счёт с таким именем уже существует");
+                    return;
+                }
+            }
+            if (currentUser == null) return;
+            usersRef.child(currentUser.getUid()).child("accounts").child(account.id).child("name").setValue(newName)
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(this, "Имя счёта изменено", Toast.LENGTH_SHORT).show();
                     loadAccounts();
                     dialog.dismiss();
                 })
