@@ -53,7 +53,16 @@ public class AccountAdapter extends RecyclerView.Adapter<AccountAdapter.AccountV
     public void onBindViewHolder(@NonNull AccountViewHolder holder, int position) {
         Account account = accounts.get(position);
         holder.tvAccountName.setText(account.name);
-        holder.tvAccountBalance.setText(String.format("%.2f %s", account.getBalance(), currencySymbol));
+        double shownBalance = 0;
+        try {
+            java.lang.reflect.Field f = account.getClass().getField("balance");
+            Object val = f.get(account);
+            if (val instanceof Number) shownBalance = ((Number) val).doubleValue();
+            else shownBalance = account.getBalance();
+        } catch (Exception e) {
+            shownBalance = account.getBalance();
+        }
+        holder.tvAccountBalance.setText(String.format("%.2f %s", shownBalance, currencySymbol));
         holder.itemView.setOnClickListener(v -> {
             if (clickListener != null) clickListener.onAccountClick(account);
         });

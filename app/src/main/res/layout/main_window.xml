@@ -43,46 +43,45 @@
                 android:gravity="center" />
         </LinearLayout>
 
-        <LinearLayout
-            android:id="@+id/tabSwitcher"
+        <com.google.android.material.button.MaterialButtonToggleGroup
+            android:id="@+id/toggleType"
             android:layout_width="0dp"
             android:layout_height="48dp"
             android:layout_marginTop="16dp"
+            android:paddingLeft="5dp"
+            android:paddingRight="5dp"
             android:background="#393939"
-            android:orientation="horizontal"
-            android:gravity="center"
-            android:padding="4dp"
+            app:cornerRadius="16dp"
+            app:singleSelection="true"
+            app:checkedButton="@id/btnExpenses"
             app:layout_constraintTop_toBottomOf="@id/topBar"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginStart="24dp"
-            android:layout_marginEnd="24dp">
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp">
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnExpenses"
+                style="@style/Widget.MaterialComponents.Button"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:text="Расходы"
-                android:textColor="@android:color/white"
-                android:textSize="16sp"
-                android:background="@drawable/rounded_orange_button"
-                android:paddingTop="12dp"
-                android:paddingBottom="12dp" />
+                android:textColor="@color/toggle_text_color"
+                app:cornerRadius="16dp"
+                app:backgroundTint="@color/toggle_bg_color"/>
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnIncome"
+                style="@style/Widget.MaterialComponents.Button"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:text="Доходы"
-                android:textColor="@android:color/white"
-                android:textSize="16sp"
-                android:background="@drawable/rounded_gray_button"
-                android:backgroundTint="@android:color/transparent"
-                android:paddingTop="12dp"
-                android:paddingBottom="12dp" />
-        </LinearLayout>
+                android:textColor="@color/toggle_text_color"
+                app:cornerRadius="16dp"
+                app:backgroundTint="@color/toggle_bg_color"/>
+        </com.google.android.material.button.MaterialButtonToggleGroup>
 
         <LinearLayout
             android:id="@+id/summaryBlock"
@@ -97,7 +96,7 @@
             android:gravity="center"
             android:elevation="4dp"
             android:padding="16dp"
-            app:layout_constraintTop_toBottomOf="@id/tabSwitcher"
+            app:layout_constraintTop_toBottomOf="@id/toggleType"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" >
 
@@ -105,102 +104,90 @@
                 android:id="@+id/amount"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="30 000 Р"
+                android:text="30 000.00 $"
                 android:textColor="@android:color/white"
                 android:textSize="28sp"
                 android:layout_gravity="center" />
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/categoryProgressBar"
+            android:id="@+id/categoryBarBlock"
             android:layout_width="0dp"
-            android:layout_height="24dp"
-            android:orientation="horizontal"
-            android:background="#393939"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
-            android:gravity="center_vertical"
             app:layout_constraintTop_toBottomOf="@id/summaryBlock"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
-
-        <Button
-            android:id="@+id/addButton"
-            android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:text="Добавить +"
-            android:textColor="@android:color/white"
-            android:textSize="18sp"
-            android:background="@drawable/rounded_orange_button"
-            android:layout_marginStart="32dp"
-            android:layout_marginEnd="32dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="8dp"
-            android:gravity="center"
-            app:layout_constraintTop_toBottomOf="@id/categoryProgressBar"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
-
-        <LinearLayout
-            android:id="@+id/periodSwitcher"
-            android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:orientation="horizontal"
-            android:background="#393939"
-            android:gravity="center"
-            android:padding="4dp"
-            android:layout_marginStart="24dp"
-            android:layout_marginEnd="24dp"
-            app:layout_constraintTop_toBottomOf="@id/addButton"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
 
-            <Button
-                android:id="@+id/btnWeek"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:text="Неделя"
-                android:textColor="@android:color/white"
-                android:textSize="16sp"
-                android:background="@drawable/rounded_gray_button"
-                android:backgroundTint="@android:color/transparent"
-                android:paddingTop="12dp"
-                android:paddingBottom="12dp" />
+            <LinearLayout
+                android:id="@+id/categoryLabelsBar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"/>
 
-            <Button
-                android:id="@+id/btnMontn"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:text="Месяц"
-                android:textColor="@android:color/white"
-                android:textSize="16sp"
-                android:background="@drawable/rounded_orange_button"
-                android:paddingTop="12dp"
-                android:paddingBottom="12dp" />
+            <LinearLayout
+                android:id="@+id/categoryProgressBar"
+                android:layout_width="match_parent"
+                android:layout_height="24dp"
+                android:orientation="horizontal"
+                android:background="#393939"
+                android:gravity="center_vertical"/>
 
-            <Button
-                android:id="@+id/btnYear"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:text="Год"
-                android:textColor="@android:color/white"
-                android:textSize="16sp"
-                android:background="@drawable/rounded_gray_button"
-                android:backgroundTint="@android:color/transparent"
-                android:paddingTop="12dp"
-                android:paddingBottom="12dp" />
+            <ScrollView
+                android:id="@+id/percentScrollView"
+                android:layout_width="match_parent"
+                android:layout_height="250dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/rounded_border_percent_bar"
+                android:scrollbars="none"
+                android:importantForAccessibility="no">
+                <LinearLayout
+                    android:id="@+id/percentBarContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="center_horizontal"/>
+            </ScrollView>
         </LinearLayout>
+
+        <!-- Общая сумма доходов/расходов -->
+        <TextView
+            android:id="@+id/tvTotalTypeAmount"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="0.00 $"
+            android:textColor="@android:color/white"
+            android:textSize="22sp"
+            android:gravity="center"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="8dp"
+            app:layout_constraintTop_toBottomOf="@id/categoryBarBlock"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+        <Button
+            android:id="@+id/addButton"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="Добавить"
+            android:textColor="@android:color/white"
+            android:textSize="18sp"
+            android:background="@drawable/rounded_orange_button"
+            android:layout_marginTop="8dp"
+            app:layout_constraintTop_toBottomOf="@id/tvTotalTypeAmount"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
         <Button
             android:id="@+id/historyButton"
             android:layout_width="0dp"
             android:layout_height="48dp"
-            android:text="История"
+            android:text="Транзакции"
             android:textColor="@android:color/white"
             android:textSize="18sp"
             android:background="@drawable/rounded_orange_button"
@@ -208,7 +195,6 @@
             android:layout_marginEnd="48dp"
             android:layout_marginBottom="24dp"
             android:gravity="center"
-            app:layout_constraintTop_toBottomOf="@id/periodSwitcher"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toBottomOf="parent" />

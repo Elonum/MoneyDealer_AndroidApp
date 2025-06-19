@@ -5,11 +5,12 @@ import java.util.List;
 
 public class Account {
     public String id;
-    public String name; // Название счета
-    public long createdAt; // Дата создания (timestamp)
-    public double initialBalance; // Начальный баланс
-    public List<Transaction> incomes; // Доходы
-    public List<Transaction> expenses; // Расходы
+    public String name;
+    public long createdAt;
+    public double initialBalance;
+    public List<Transaction> incomes;
+    public List<Transaction> expenses;
+    public double balance;
 
     public Account() {
         incomes = new ArrayList<>();
@@ -49,7 +50,7 @@ public class Account {
         List<Transaction> all = new ArrayList<>();
         all.addAll(incomes);
         all.addAll(expenses);
-        all.sort((a, b) -> Long.compare(b.timestamp, a.timestamp)); // по убыванию даты
+        all.sort((a, b) -> Long.compare(b.timestamp, a.timestamp));
         return all;
     }
 } 
