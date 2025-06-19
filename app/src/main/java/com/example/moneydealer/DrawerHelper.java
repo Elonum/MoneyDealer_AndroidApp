@@ -27,14 +27,14 @@ public class DrawerHelper {
                 Intent intent = new Intent(activity, MainWindow.class);
                 activity.startActivity(intent);
             } else if (id == R.id.nav_cash_accounts) {
-                // TODO: Открыть счета
+                Intent intent = new Intent(activity, AccountWindow.class);
+                activity.startActivity(intent);
             } else if (id == R.id.nav_regular) {
                 // TODO: Открыть регулярные платежи
             } else if (id == R.id.nav_categories) {
                 Intent intent = new Intent(activity, CategoryWindow.class);
                 activity.startActivity(intent);
             } else if (id == R.id.nav_rate) {
-                // Диалог оценки приложения
                 android.app.Activity act = activity;
                 FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
                 if (user == null) {

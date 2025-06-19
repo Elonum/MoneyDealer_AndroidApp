@@ -3,17 +3,34 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="16dp">
+    android:layout_marginTop="8dp"
+    android:layout_marginBottom="8dp"
+    android:background="@drawable/rounded_gray_button"
+    android:padding="12dp">
+
+    <ImageView
+        android:id="@+id/account_ic"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:src="@drawable/account_ic"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"/>
 
     <TextView
         android:id="@+id/tvAccountName"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:textSize="18sp"
+        android:textStyle="bold"
         android:textColor="@android:color/white"
-        app:layout_constraintStart_toStartOf="parent"
+        android:gravity="center_vertical"
+        app:layout_constraintStart_toEndOf="@id/account_ic"
         app:layout_constraintEnd_toStartOf="@id/tvAccountBalance"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"/>
 
     <TextView
         android:id="@+id/tvAccountBalance"
@@ -21,7 +38,9 @@
         android:layout_height="wrap_content"
         android:textSize="18sp"
         android:textColor="@android:color/white"
+        android:gravity="center_vertical"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout> 

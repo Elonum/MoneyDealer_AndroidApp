@@ -36,6 +36,8 @@ import com.google.android.material.navigation.NavigationView;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.example.moneydealer.utils.CurrencyUtils;
+
 public class ProfileWindow extends AppCompatActivity {
     private EditText etName, etSurname;
     private TextView tvEmail, tvCurrency;
@@ -52,6 +54,7 @@ public class ProfileWindow extends AppCompatActivity {
     private User user;
     private AccountAdapter accountAdapter;
     private List<Account> accounts;
+    private String currencySymbol = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,13 +89,15 @@ public class ProfileWindow extends AppCompatActivity {
         usersRef = FirebaseDatabase.getInstance().getReference("users");
 
         accounts = new ArrayList<>();
-        accountAdapter = new AccountAdapter(accounts);
+        accountAdapter = new AccountAdapter(accounts, currencySymbol);
         rvAccounts.setLayoutManager(new LinearLayoutManager(this));
         rvAccounts.setAdapter(accountAdapter);
 
+        loadUserCurrencyAndAccounts();
         loadUserInfo();
-        loadAccounts();
         setupListeners();
+
+        accountAdapter.setOnAccountLongClickListener(this::onDeleteAccountWithDialog);
 
         findViewById(android.R.id.content).setOnTouchListener((v, event) -> {
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
@@ -106,6 +111,24 @@ public class ProfileWindow extends AppCompatActivity {
                 }
             }
             return false;
+        });
+    }
+
+    private void loadUserCurrencyAndAccounts() {
+        if (currentUser == null) return;
+        usersRef.child(currentUser.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                User user = snapshot.getValue(User.class);
+                String code = user != null ? user.selectedCurrency : null;
+                currencySymbol = CurrencyUtils.getCurrencySymbol(code);
+                accountAdapter.setCurrencySymbol(currencySymbol);
+                loadAccounts();
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                loadAccounts();
+            }
         });
     }
 
@@ -247,5 +270,26 @@ public class ProfileWindow extends AppCompatActivity {
             user.surname = newSurname;
             etSurname.setText(newSurname);
         }
+    }
+
+    private void onDeleteAccountWithDialog(Account account) {
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Удалить счёт?")
+            .setMessage("Вы уверены, что хотите удалить счёт '" + account.name + "'?")
+            .setPositiveButton("Удалить", (dialog, which) -> onDeleteAccount(account))
+            .setNegativeButton("Отмена", null)
+            .show();
+    }
+
+    private void onDeleteAccount(Account account) {
+        if (currentUser == null) return;
+        usersRef.child(currentUser.getUid()).child("accounts").child(account.id).removeValue((error, ref) -> {
+            if (error == null) {
+                Toast.makeText(this, "Счёт удалён", Toast.LENGTH_SHORT).show();
+                loadAccounts();
+            } else {
+                Toast.makeText(this, "Ошибка удаления: " + error.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        });
     }
 } 

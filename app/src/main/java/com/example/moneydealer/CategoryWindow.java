@@ -117,7 +117,7 @@ public class CategoryWindow extends AppCompatActivity {
         rvCategories.setLayoutManager(new GridLayoutManager(this, 2));
         int spacing = getResources().getDimensionPixelSize(R.dimen.category_grid_spacing);
         rvCategories.addItemDecoration(new GridSpacingItemDecoration(2, spacing, true));
-        adapter = new CategoryAdapter(this, categories, this::onDeleteCategory);
+        adapter = new CategoryAdapter(this, categories, this::onDeleteCategoryWithDialog);
         rvCategories.setAdapter(adapter);
 
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
@@ -161,6 +161,15 @@ public class CategoryWindow extends AppCompatActivity {
                 Toast.makeText(this, "Ошибка удаления: " + error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void onDeleteCategoryWithDialog(Category category) {
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Удалить категорию?")
+            .setMessage("Вы уверены, что хотите удалить категорию '" + category.name + "'?")
+            .setPositiveButton("Удалить", (dialog, which) -> onDeleteCategory(category))
+            .setNegativeButton("Отмена", null)
+            .show();
     }
 
     private void showAddCategoryDialog() {

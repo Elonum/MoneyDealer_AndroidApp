@@ -15,6 +15,9 @@
         android:theme="@style/Theme.MoneyDealer"
         tools:targetApi="31">
         <activity
+            android:name=".AccountWindow"
+            android:exported="false" />
+        <activity
             android:name=".CategoryWindow"
             android:exported="false" />
         <activity
