@@ -30,7 +30,8 @@ public class DrawerHelper {
                 Intent intent = new Intent(activity, AccountWindow.class);
                 activity.startActivity(intent);
             } else if (id == R.id.nav_regular) {
-                // TODO: Открыть регулярные платежи
+                Intent intent = new Intent(activity, RegularPaymentWindow.class);
+                activity.startActivity(intent);
             } else if (id == R.id.nav_categories) {
                 Intent intent = new Intent(activity, CategoryWindow.class);
                 activity.startActivity(intent);
