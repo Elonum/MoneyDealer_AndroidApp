@@ -56,6 +56,7 @@ public class CategoryWindow extends AppCompatActivity {
     private CategoryAdapter adapter;
     private List<Category> categories = new ArrayList<>();
     private DatabaseReference categoriesRef;
+    private DatabaseReference transactionsRef;
     private FirebaseUser currentUser;
 
     private final int[] COLORS = new int[] {
@@ -149,6 +150,7 @@ public class CategoryWindow extends AppCompatActivity {
             return;
         }
         categoriesRef = FirebaseDatabase.getInstance().getReference("users").child(currentUser.getUid()).child("categories");
+        transactionsRef = FirebaseDatabase.getInstance().getReference("users").child(currentUser.getUid()).child("transactions");
 
         loadCategories();
 
@@ -193,11 +195,33 @@ public class CategoryWindow extends AppCompatActivity {
     }
 
     private void onDeleteCategory(Category category) {
-        categoriesRef.child(category.id).removeValue((error, ref) -> {
-            if (error == null) {
-                Toast.makeText(this, "Категория удалена", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(this, "Ошибка удаления: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+        // Проверяем, есть ли транзакции с этой категорией
+        transactionsRef.addListenerForSingleValueEvent(new com.google.firebase.database.ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull com.google.firebase.database.DataSnapshot snapshot) {
+                boolean used = false;
+                for (com.google.firebase.database.DataSnapshot txSnap : snapshot.getChildren()) {
+                    com.example.moneydealer.models.Transaction tx = txSnap.getValue(com.example.moneydealer.models.Transaction.class);
+                    if (tx != null && category.id.equals(tx.categoryId)) {
+                        used = true;
+                        break;
+                    }
+                }
+                if (used) {
+                    Toast.makeText(CategoryWindow.this, "Нельзя удалить категорию: она используется в транзакциях", Toast.LENGTH_LONG).show();
+                } else {
+                    categoriesRef.child(category.id).removeValue((error, ref) -> {
+                        if (error == null) {
+                            Toast.makeText(CategoryWindow.this, "Категория удалена", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(CategoryWindow.this, "Ошибка удаления: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+            }
+            @Override
+            public void onCancelled(@NonNull com.google.firebase.database.DatabaseError error) {
+                Toast.makeText(CategoryWindow.this, "Ошибка проверки транзакций: " + error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
