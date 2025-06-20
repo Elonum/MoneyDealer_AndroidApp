@@ -52,26 +52,63 @@
         android:layout_marginBottom="16dp"/>
 
     <LinearLayout
+        android:id="@+id/dateTimeRow"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:layout_marginBottom="12dp">
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp">
 
         <TextView
             android:id="@+id/tvSelectedDate"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Дата:"
+            android:text="Дата: 01.01.2024"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            android:layout_marginEnd="16dp"/>
+
+        <TextView
+            android:id="@+id/tvSelectedTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Время: 12:00"
             android:textColor="@android:color/white"
             android:textSize="16sp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/dateTimeButtonsRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginBottom="16dp">
 
         <Button
             android:id="@+id/btnPickDate"
-            android:layout_width="wrap_content"
+            style="@style/Widget.MaterialComponents.Button"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Выбрать дату"/>
+            android:layout_weight="1"
+            android:text="ВЫБРАТЬ ДАТУ"
+            android:textColor="@android:color/white"
+            android:background="@drawable/rounded_orange_button"/>
+
+        <Space
+            android:layout_width="16dp"
+            android:layout_height="wrap_content"/>
+
+        <Button
+            android:id="@+id/btnPickTime"
+            style="@style/Widget.MaterialComponents.Button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="ВРЕМЯ"
+            android:textColor="@android:color/white"
+            android:background="@drawable/rounded_orange_button"/>
     </LinearLayout>
 
     <Button

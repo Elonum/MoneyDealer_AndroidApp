@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.drawerlayout.widget.DrawerLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/drawer_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/main"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".TransactionWindow">
+
+        <LinearLayout
+            android:id="@+id/topBar"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:background="@color/welcome_orange"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <ImageView
+                android:id="@+id/menuIcon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/menu_ic"/>
+
+            <TextView
+                android:id="@+id/tvTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Транзакции"
+                android:textColor="@android:color/white"
+                android:textSize="18sp"
+                android:gravity="center"/>
+        </LinearLayout>
+
+        <com.google.android.material.button.MaterialButtonToggleGroup
+            android:id="@+id/toggleType"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="16dp"
+            android:paddingLeft="5dp"
+            android:paddingRight="5dp"
+            android:background="#393939"
+            app:cornerRadius="16dp"
+            app:singleSelection="true"
+            app:checkedButton="@id/btnExpenses"
+            app:layout_constraintTop_toBottomOf="@id/topBar"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnExpenses"
+                style="@style/Widget.MaterialComponents.Button"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="Расходы"
+                android:textColor="@color/toggle_text_color"
+                app:cornerRadius="16dp"
+                app:backgroundTint="@color/toggle_bg_color"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnIncome"
+                style="@style/Widget.MaterialComponents.Button"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="Доходы"
+                android:textColor="@color/toggle_text_color"
+                app:cornerRadius="16dp"
+                app:backgroundTint="@color/toggle_bg_color"/>
+        </com.google.android.material.button.MaterialButtonToggleGroup>
+
+        <com.google.android.material.button.MaterialButtonToggleGroup
+            android:id="@+id/togglePeriod"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="12dp"
+            android:background="#393939"
+            app:cornerRadius="16dp"
+            app:singleSelection="true"
+            app:checkedButton="@id/btnAll"
+            app:layout_constraintTop_toBottomOf="@id/toggleType"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnDay"
+                style="@style/Widget.MaterialComponents.Button"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="День"
+                android:textColor="@color/toggle_text_color"
+                app:cornerRadius="16dp"
+                app:backgroundTint="@color/toggle_bg_color"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnWeek"
+                style="@style/Widget.MaterialComponents.Button"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="Неделя"
+                android:textColor="@color/toggle_text_color"
+                app:cornerRadius="16dp"
+                app:backgroundTint="@color/toggle_bg_color"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnMonth"
+                style="@style/Widget.MaterialComponents.Button"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="Месяц"
+                android:textColor="@color/toggle_text_color"
+                app:cornerRadius="16dp"
+                app:backgroundTint="@color/toggle_bg_color"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnYear"
+                style="@style/Widget.MaterialComponents.Button"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="Год"
+                android:textColor="@color/toggle_text_color"
+                app:cornerRadius="16dp"
+                app:backgroundTint="@color/toggle_bg_color"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAll"
+                style="@style/Widget.MaterialComponents.Button"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="Все"
+                android:textColor="@color/toggle_text_color"
+                app:cornerRadius="16dp"
+                app:backgroundTint="@color/toggle_bg_color"/>
+        </com.google.android.material.button.MaterialButtonToggleGroup>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvTransactions"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintTop_toBottomOf="@id/togglePeriod"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="16dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <com.google.android.material.navigation.NavigationView
+        android:id="@+id/navigation_view"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:background="@color/background_color"
+        app:itemTextColor="@color/white"
+        app:itemIconTint="@color/welcome_orange"
+        app:menu="@menu/drawer_menu"/>
+
+</androidx.drawerlayout.widget.DrawerLayout> 

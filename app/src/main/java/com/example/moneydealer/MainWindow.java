@@ -138,6 +138,12 @@ public class MainWindow extends AppCompatActivity {
 
         Button addButton = findViewById(R.id.addButton);
         addButton.setOnClickListener(v -> showAddTransactionDialog());
+
+        Button historyButton = findViewById(R.id.historyButton);
+        historyButton.setOnClickListener(v -> {
+            Intent intent = new Intent(MainWindow.this, TransactionWindow.class);
+            startActivity(intent);
+        });
     }
 
     @Override
@@ -160,8 +166,8 @@ public class MainWindow extends AppCompatActivity {
             public void onLoaded(List<Category> cats) {
                 categories = cats;
                 long now = System.currentTimeMillis();
-                long monthAgo = now - 30L*24*60*60*1000;
-                repo.loadTransactions(monthAgo, now, new FinanceRepository.TransactionsCallback() {
+                // Загружаем все транзакции за всё время
+                repo.loadTransactions(0, now, new FinanceRepository.TransactionsCallback() {
                     @Override
                     public void onLoaded(List<Transaction> txs) {
                         allTransactions = txs;
@@ -426,7 +432,9 @@ public class MainWindow extends AppCompatActivity {
         EditText etComment = dialogView.findViewById(R.id.etComment);
         Button btnSave = dialogView.findViewById(R.id.btnSaveTransaction);
         TextView tvSelectedDate = dialogView.findViewById(R.id.tvSelectedDate);
+        TextView tvSelectedTime = dialogView.findViewById(R.id.tvSelectedTime);
         Button btnPickDate = dialogView.findViewById(R.id.btnPickDate);
+        Button btnPickTime = dialogView.findViewById(R.id.btnPickTime);
         // Фильтруем категории по типу
         List<Category> filteredCategories = new ArrayList<>();
         for (Category c : categories) {
@@ -436,9 +444,10 @@ public class MainWindow extends AppCompatActivity {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         for (Category c : filteredCategories) adapter.add(c.name);
         spinnerCategory.setAdapter(adapter);
-        // Дата по умолчанию — сегодня
+        // Дата и время по умолчанию — сейчас
         final Calendar selectedDate = Calendar.getInstance();
         updateDateText(tvSelectedDate, selectedDate);
+        updateTimeText(tvSelectedTime, selectedDate);
         btnPickDate.setOnClickListener(v -> {
             Calendar now = Calendar.getInstance();
             new DatePickerDialog(this, (view, year, month, dayOfMonth) -> {
@@ -446,10 +455,20 @@ public class MainWindow extends AppCompatActivity {
                 selectedDate.set(Calendar.MONTH, month);
                 selectedDate.set(Calendar.DAY_OF_MONTH, dayOfMonth);
                 updateDateText(tvSelectedDate, selectedDate);
+                updateTimeText(tvSelectedTime, selectedDate);
             },
             selectedDate.get(Calendar.YEAR),
             selectedDate.get(Calendar.MONTH),
             selectedDate.get(Calendar.DAY_OF_MONTH)).show();
+        });
+        btnPickTime.setOnClickListener(v -> {
+            int hour = selectedDate.get(Calendar.HOUR_OF_DAY);
+            int minute = selectedDate.get(Calendar.MINUTE);
+            new android.app.TimePickerDialog(this, (view, h, m) -> {
+                selectedDate.set(Calendar.HOUR_OF_DAY, h);
+                selectedDate.set(Calendar.MINUTE, m);
+                updateTimeText(tvSelectedTime, selectedDate);
+            }, hour, minute, true).show();
         });
         builder.setView(dialogView);
         androidx.appcompat.app.AlertDialog dialog = builder.create();
@@ -487,17 +506,10 @@ public class MainWindow extends AppCompatActivity {
             // Проверка даты (не в будущем)
             Calendar now = Calendar.getInstance();
             Calendar selectedCopy = (Calendar) selectedDate.clone();
-            selectedCopy.set(Calendar.HOUR_OF_DAY, 0);
-            selectedCopy.set(Calendar.MINUTE, 0);
             selectedCopy.set(Calendar.SECOND, 0);
             selectedCopy.set(Calendar.MILLISECOND, 0);
-            Calendar today = (Calendar) now.clone();
-            today.set(Calendar.HOUR_OF_DAY, 0);
-            today.set(Calendar.MINUTE, 0);
-            today.set(Calendar.SECOND, 0);
-            today.set(Calendar.MILLISECOND, 0);
-            if (selectedCopy.after(today)) {
-                Toast.makeText(this, "Дата не может быть в будущем", Toast.LENGTH_SHORT).show();
+            if (selectedCopy.after(now)) {
+                Toast.makeText(this, "Дата и время не могут быть в будущем", Toast.LENGTH_SHORT).show();
                 return;
             }
             long timestamp = selectedCopy.getTimeInMillis();
@@ -529,5 +541,9 @@ public class MainWindow extends AppCompatActivity {
     private void updateDateText(TextView tv, Calendar cal) {
         java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd.MM.yyyy", java.util.Locale.getDefault());
         tv.setText("Дата: " + sdf.format(cal.getTime()));
+    }
+    private void updateTimeText(TextView tv, Calendar cal) {
+        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault());
+        tv.setText("Время: " + sdf.format(cal.getTime()));
     }
 }

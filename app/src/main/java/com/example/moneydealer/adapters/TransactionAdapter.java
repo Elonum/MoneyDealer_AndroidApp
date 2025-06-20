@@ -22,6 +22,14 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
     private Map<String, Category> categoryMap;
     private String currencySymbol;
 
+    public interface OnTransactionLongClickListener {
+        void onTransactionLongClick(Transaction transaction, int position);
+    }
+    private OnTransactionLongClickListener longClickListener;
+    public void setOnTransactionLongClickListener(OnTransactionLongClickListener listener) {
+        this.longClickListener = listener;
+    }
+
     public TransactionAdapter(List<Transaction> transactions, Map<String, Category> categoryMap, String currencySymbol) {
         this.transactions = transactions;
         this.categoryMap = categoryMap;
@@ -51,11 +59,37 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         holder.ivCategoryIcon.setColorFilter(cat != null ? cat.color : 0xFFAAAAAA);
         SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault());
         holder.tvTransactionDate.setText(sdf.format(new Date(tx.timestamp)));
+
+        // Анимация появления
+        holder.itemView.setAlpha(0f);
+        holder.itemView.setScaleX(0.8f);
+        holder.itemView.setScaleY(0.8f);
+        holder.itemView.animate()
+            .alpha(1f)
+            .scaleX(1f)
+            .scaleY(1f)
+            .setDuration(500)
+            .setStartDelay(position * 60)
+            .start();
+
+        // Долгое нажатие для удаления
+        holder.itemView.setOnLongClickListener(v -> {
+            if (longClickListener != null) {
+                longClickListener.onTransactionLongClick(tx, position);
+                return true;
+            }
+            return false;
+        });
     }
 
     @Override
     public int getItemCount() {
         return transactions.size();
+    }
+
+    public void setCurrencySymbol(String symbol) {
+        this.currencySymbol = symbol;
+        notifyDataSetChanged();
     }
 
     public static class TransactionViewHolder extends RecyclerView.ViewHolder {
