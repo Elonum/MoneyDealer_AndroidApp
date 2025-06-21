@@ -60,6 +60,7 @@ public class RegularPaymentWindow extends AppCompatActivity {
     private FinanceRepository repo;
     private Map<String, Category> categoryMap = new java.util.HashMap<>();
     private Map<String, Account> accountMap = new java.util.HashMap<>();
+    private RegularPayment editingPayment = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,11 +85,19 @@ public class RegularPaymentWindow extends AppCompatActivity {
         adapter = new RegularPaymentAdapter(regularPayments, new RegularPaymentAdapter.OnRegularPaymentClickListener() {
             @Override
             public void onEditClick(RegularPayment payment) {
-                // TODO: Реализовать редактирование регулярного платежа
+                editingPayment = payment;
+                showAddRegularPaymentDialog(payment);
             }
             @Override
             public void onDeleteClick(RegularPayment payment) {
-                // TODO: Реализовать удаление регулярного платежа
+                new androidx.appcompat.app.AlertDialog.Builder(RegularPaymentWindow.this)
+                        .setTitle("Удалить платёж?")
+                        .setMessage("Вы уверены, что хотите удалить этот регулярный платёж?")
+                        .setPositiveButton("Удалить", (dialog, which) -> {
+                            regularPaymentsRef.child(payment.id).removeValue();
+                        })
+                        .setNegativeButton("Отмена", null)
+                        .show();
             }
         }, categoryMap, accountMap);
         rvRegularPayments.setLayoutManager(new LinearLayoutManager(this));
@@ -169,6 +178,10 @@ public class RegularPaymentWindow extends AppCompatActivity {
     }
 
     private void showAddRegularPaymentDialog() {
+        showAddRegularPaymentDialog(null);
+    }
+
+    private void showAddRegularPaymentDialog(RegularPayment toEdit) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_regular_payment, null);
         Spinner spinnerAccount = dialogView.findViewById(R.id.spinnerAccount);
@@ -189,7 +202,7 @@ public class RegularPaymentWindow extends AppCompatActivity {
         for (Account acc : accounts) accountAdapter.add(acc.name);
         spinnerAccount.setAdapter(accountAdapter);
 
-        // Тип по умолчанию
+        // Типы и периоды
         String[] periodValues = {"Каждый день", "Каждую неделю", "Каждый месяц", "Каждый год"};
         ArrayAdapter<String> periodAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, periodValues);
         periodAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -207,14 +220,32 @@ public class RegularPaymentWindow extends AppCompatActivity {
             for (Category c : categories) if (c.type != null && c.type.equals(type)) categoryAdapter.add(c.name);
             if (categoryAdapter.getCount() > 0) spinnerCategory.setSelection(0);
         });
-        // Инициализация категорий по умолчанию
-        rgType.check(R.id.rbExpense);
-        categoryAdapter.clear();
-        for (Category c : categories) if (c.type != null && c.type.equals("expense")) categoryAdapter.add(c.name);
-        if (categoryAdapter.getCount() > 0) spinnerCategory.setSelection(0);
 
-        // Дата и время по умолчанию — сейчас
+        // Если редактируем, заполняем поля
         final Calendar selectedDate = Calendar.getInstance();
+        if (toEdit != null) {
+            int accPos = 0;
+            for (int i = 0; i < accounts.size(); i++) if (accounts.get(i).id.equals(toEdit.accountId)) accPos = i;
+            spinnerAccount.setSelection(accPos);
+            if (toEdit.type != null && toEdit.type.equals("income")) rgType.check(R.id.rbIncome);
+            else rgType.check(R.id.rbExpense);
+            categoryAdapter.clear();
+            for (Category c : categories) if (c.type != null && c.type.equals(toEdit.type)) categoryAdapter.add(c.name);
+            int catPos = 0;
+            for (int i = 0; i < categoryAdapter.getCount(); i++) if (categories.get(i).id.equals(toEdit.categoryId)) catPos = i;
+            spinnerCategory.setSelection(catPos);
+            etAmount.setText(String.valueOf(toEdit.amount));
+            etComment.setText(toEdit.comment);
+            int periodPos = 0;
+            for (int i = 0; i < periodValues.length; i++) if (periodValues[i].equals(toEdit.period)) periodPos = i;
+            spinnerPeriod.setSelection(periodPos);
+            selectedDate.setTimeInMillis(toEdit.startTimestamp);
+        } else {
+            rgType.check(R.id.rbExpense);
+            categoryAdapter.clear();
+            for (Category c : categories) if (c.type != null && c.type.equals("expense")) categoryAdapter.add(c.name);
+            if (categoryAdapter.getCount() > 0) spinnerCategory.setSelection(0);
+        }
         updateDateText(tvSelectedDate, selectedDate);
         updateTimeText(tvSelectedTime, selectedDate);
         btnPickDate.setOnClickListener(v -> {
@@ -266,7 +297,6 @@ public class RegularPaymentWindow extends AppCompatActivity {
             String type = rgType.getCheckedRadioButtonId() == R.id.rbIncome ? "income" : "expense";
             Account selectedAccount = accounts.get(accountPos);
             String accountId = selectedAccount.id;
-            String currency = ""; // Можно добавить валюту счета, если нужно
             String categoryName = categoryAdapter.getItem(categoryPos);
             String categoryId = null;
             for (Category c : categories) if (c.name.equals(categoryName) && c.type.equals(type)) categoryId = c.id;
@@ -275,10 +305,14 @@ public class RegularPaymentWindow extends AppCompatActivity {
                 return;
             }
             long startTimestamp = selectedDate.getTimeInMillis();
-            String id = regularPaymentsRef.push().getKey();
-            RegularPayment rp = new RegularPayment(id, accountId, amount, categoryId, type, comment, startTimestamp, period, 0);
+            if (startTimestamp < System.currentTimeMillis()) {
+                Toast.makeText(this, "Дата не может быть в прошлом", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            String id = (toEdit != null) ? toEdit.id : regularPaymentsRef.push().getKey();
+            RegularPayment rp = new RegularPayment(id, accountId, amount, categoryId, type, comment, startTimestamp, period, (toEdit != null ? toEdit.lastAppliedTimestamp : 0));
             regularPaymentsRef.child(id).setValue(rp).addOnSuccessListener(aVoid -> {
-                Toast.makeText(this, "Регулярный платёж добавлен", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, (toEdit != null ? "Изменения сохранены" : "Регулярный платёж добавлен"), Toast.LENGTH_SHORT).show();
                 dialog.dismiss();
             }).addOnFailureListener(e -> {
                 Toast.makeText(this, "Ошибка: " + e.getMessage(), Toast.LENGTH_LONG).show();
