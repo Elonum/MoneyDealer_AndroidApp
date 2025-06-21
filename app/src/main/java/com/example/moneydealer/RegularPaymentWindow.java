@@ -26,6 +26,22 @@ import java.util.List;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import com.example.moneydealer.adapters.RegularPaymentAdapter;
+import android.app.AlertDialog;
+import android.app.DatePickerDialog;
+import android.app.TimePickerDialog;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
+import android.widget.Spinner;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
+import android.widget.Toast;
+import com.example.moneydealer.models.Account;
+import com.example.moneydealer.data.FinanceRepository;
+import java.util.Calendar;
+import java.util.Map;
+import android.graphics.Rect;
+import android.content.res.Resources;
 
 public class RegularPaymentWindow extends AppCompatActivity {
     private DrawerLayout drawerLayout;
@@ -35,9 +51,15 @@ public class RegularPaymentWindow extends AppCompatActivity {
     private RecyclerView rvRegularPayments;
     private Button btnAddRegularPayment;
     private List<RegularPayment> regularPayments = new ArrayList<>();
-    //private RegularPaymentAdapter adapter;
+    private RegularPaymentAdapter adapter;
     private DatabaseReference regularPaymentsRef;
     private FirebaseUser currentUser;
+    private TextView tvEmptyRegularPayments;
+    private List<Account> accounts = new ArrayList<>();
+    private List<Category> categories = new ArrayList<>();
+    private FinanceRepository repo;
+    private Map<String, Category> categoryMap = new java.util.HashMap<>();
+    private Map<String, Account> accountMap = new java.util.HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,14 +77,37 @@ public class RegularPaymentWindow extends AppCompatActivity {
         tvTitle = findViewById(R.id.tvTitle);
         rvRegularPayments = findViewById(R.id.rvRegularPayments);
         btnAddRegularPayment = findViewById(R.id.btnAddRegularPayment);
+        tvEmptyRegularPayments = findViewById(R.id.tvEmptyRegularPayments);
         DrawerHelper.setupDrawer(this, drawerLayout, navigationView, menuIcon);
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
         regularPaymentsRef = FirebaseDatabase.getInstance().getReference("users").child(currentUser.getUid()).child("regular_payments");
-        //adapter = new RegularPaymentAdapter(regularPayments);
+        adapter = new RegularPaymentAdapter(regularPayments, new RegularPaymentAdapter.OnRegularPaymentClickListener() {
+            @Override
+            public void onEditClick(RegularPayment payment) {
+                // TODO: Реализовать редактирование регулярного платежа
+            }
+            @Override
+            public void onDeleteClick(RegularPayment payment) {
+                // TODO: Реализовать удаление регулярного платежа
+            }
+        }, categoryMap, accountMap);
         rvRegularPayments.setLayoutManager(new LinearLayoutManager(this));
-        //rvRegularPayments.setAdapter(adapter);
+        rvRegularPayments.setAdapter(adapter);
+        rvRegularPayments.addItemDecoration(new RecyclerView.ItemDecoration() {
+            @Override
+            public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
+                super.getItemOffsets(outRect, view, parent, state);
+                int spacing = (int) (12 * Resources.getSystem().getDisplayMetrics().density);
+                if (parent.getChildAdapterPosition(view) != parent.getAdapter().getItemCount() - 1) {
+                    outRect.bottom = spacing;
+                }
+            }
+        });
         loadRegularPayments();
         btnAddRegularPayment.setOnClickListener(v -> showAddRegularPaymentDialog());
+        repo = new FinanceRepository();
+        loadAccounts();
+        loadCategories();
     }
 
     private void loadRegularPayments() {
@@ -74,14 +119,178 @@ public class RegularPaymentWindow extends AppCompatActivity {
                     RegularPayment rp = snap.getValue(RegularPayment.class);
                     if (rp != null) regularPayments.add(rp);
                 }
-                //adapter.notifyDataSetChanged();
+                adapter.setRegularPayments(regularPayments);
+                if (regularPayments.isEmpty()) {
+                    tvEmptyRegularPayments.setVisibility(View.VISIBLE);
+                    rvRegularPayments.setVisibility(View.GONE);
+                } else {
+                    tvEmptyRegularPayments.setVisibility(View.GONE);
+                    rvRegularPayments.setVisibility(View.VISIBLE);
+                }
             }
             @Override
             public void onCancelled(@NonNull DatabaseError error) {}
         });
     }
 
+    private void loadAccounts() {
+        DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users");
+        usersRef.child(currentUser.getUid()).child("accounts").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                accounts.clear();
+                accountMap.clear();
+                for (DataSnapshot accountSnapshot : snapshot.getChildren()) {
+                    Account account = accountSnapshot.getValue(Account.class);
+                    if (account != null) {
+                        accounts.add(account);
+                        accountMap.put(account.id, account);
+                    }
+                }
+                adapter.notifyDataSetChanged();
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
+    }
+
+    private void loadCategories() {
+        repo.loadCategories(new FinanceRepository.CategoriesCallback() {
+            @Override
+            public void onLoaded(List<Category> cats) {
+                categories = cats;
+                categoryMap.clear();
+                for (Category c : cats) categoryMap.put(c.id, c);
+                adapter.notifyDataSetChanged();
+            }
+            @Override
+            public void onError(DatabaseError error) {}
+        });
+    }
+
     private void showAddRegularPaymentDialog() {
-        // TODO: Реализовать диалог добавления регулярного платежа
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_regular_payment, null);
+        Spinner spinnerAccount = dialogView.findViewById(R.id.spinnerAccount);
+        RadioGroup rgType = dialogView.findViewById(R.id.rgType);
+        Spinner spinnerCategory = dialogView.findViewById(R.id.spinnerCategory);
+        EditText etAmount = dialogView.findViewById(R.id.etAmount);
+        EditText etComment = dialogView.findViewById(R.id.etComment);
+        Spinner spinnerPeriod = dialogView.findViewById(R.id.spinnerPeriod);
+        TextView tvSelectedDate = dialogView.findViewById(R.id.tvSelectedDate);
+        TextView tvSelectedTime = dialogView.findViewById(R.id.tvSelectedTime);
+        Button btnPickDate = dialogView.findViewById(R.id.btnPickDate);
+        Button btnPickTime = dialogView.findViewById(R.id.btnPickTime);
+        Button btnSave = dialogView.findViewById(R.id.btnSaveRegularPayment);
+
+        // Заполняем счета
+        ArrayAdapter<String> accountAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item);
+        accountAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        for (Account acc : accounts) accountAdapter.add(acc.name);
+        spinnerAccount.setAdapter(accountAdapter);
+
+        // Тип по умолчанию
+        String[] periodValues = {"Каждый день", "Каждую неделю", "Каждый месяц", "Каждый год"};
+        ArrayAdapter<String> periodAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, periodValues);
+        periodAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerPeriod.setAdapter(periodAdapter);
+
+        // Категории по типу
+        RadioButton rbExpense = dialogView.findViewById(R.id.rbExpense);
+        RadioButton rbIncome = dialogView.findViewById(R.id.rbIncome);
+        ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item);
+        categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerCategory.setAdapter(categoryAdapter);
+        rgType.setOnCheckedChangeListener((group, checkedId) -> {
+            String type = checkedId == R.id.rbIncome ? "income" : "expense";
+            categoryAdapter.clear();
+            for (Category c : categories) if (c.type != null && c.type.equals(type)) categoryAdapter.add(c.name);
+            if (categoryAdapter.getCount() > 0) spinnerCategory.setSelection(0);
+        });
+        // Инициализация категорий по умолчанию
+        rgType.check(R.id.rbExpense);
+        categoryAdapter.clear();
+        for (Category c : categories) if (c.type != null && c.type.equals("expense")) categoryAdapter.add(c.name);
+        if (categoryAdapter.getCount() > 0) spinnerCategory.setSelection(0);
+
+        // Дата и время по умолчанию — сейчас
+        final Calendar selectedDate = Calendar.getInstance();
+        updateDateText(tvSelectedDate, selectedDate);
+        updateTimeText(tvSelectedTime, selectedDate);
+        btnPickDate.setOnClickListener(v -> {
+            Calendar now = Calendar.getInstance();
+            new DatePickerDialog(this, (view, year, month, dayOfMonth) -> {
+                selectedDate.set(Calendar.YEAR, year);
+                selectedDate.set(Calendar.MONTH, month);
+                selectedDate.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+                updateDateText(tvSelectedDate, selectedDate);
+            },
+            selectedDate.get(Calendar.YEAR),
+            selectedDate.get(Calendar.MONTH),
+            selectedDate.get(Calendar.DAY_OF_MONTH)).show();
+        });
+        btnPickTime.setOnClickListener(v -> {
+            int hour = selectedDate.get(Calendar.HOUR_OF_DAY);
+            int minute = selectedDate.get(Calendar.MINUTE);
+            new TimePickerDialog(this, (view, h, m) -> {
+                selectedDate.set(Calendar.HOUR_OF_DAY, h);
+                selectedDate.set(Calendar.MINUTE, m);
+                updateTimeText(tvSelectedTime, selectedDate);
+            }, hour, minute, true).show();
+        });
+
+        builder.setView(dialogView);
+        AlertDialog dialog = builder.create();
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(androidx.core.content.ContextCompat.getColor(this, R.color.background_color)));
+        }
+        btnSave.setOnClickListener(v -> {
+            int accountPos = spinnerAccount.getSelectedItemPosition();
+            int categoryPos = spinnerCategory.getSelectedItemPosition();
+            if (accountPos < 0 || categoryPos < 0) {
+                Toast.makeText(this, "Выберите счёт и категорию", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            String amountStr = etAmount.getText().toString().trim();
+            if (amountStr.isEmpty()) {
+                etAmount.setError("Введите сумму");
+                return;
+            }
+            float amount;
+            try { amount = Float.parseFloat(amountStr); } catch (NumberFormatException e) {
+                etAmount.setError("Некорректная сумма");
+                return;
+            }
+            String comment = etComment.getText().toString().trim();
+            String period = spinnerPeriod.getSelectedItem().toString();
+            String type = rgType.getCheckedRadioButtonId() == R.id.rbIncome ? "income" : "expense";
+            Account selectedAccount = accounts.get(accountPos);
+            String accountId = selectedAccount.id;
+            String currency = ""; // Можно добавить валюту счета, если нужно
+            String categoryName = categoryAdapter.getItem(categoryPos);
+            String categoryId = null;
+            for (Category c : categories) if (c.name.equals(categoryName) && c.type.equals(type)) categoryId = c.id;
+            if (categoryId == null) {
+                Toast.makeText(this, "Ошибка категории", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            long startTimestamp = selectedDate.getTimeInMillis();
+            String id = regularPaymentsRef.push().getKey();
+            RegularPayment rp = new RegularPayment(id, accountId, amount, categoryId, type, comment, startTimestamp, period, 0);
+            regularPaymentsRef.child(id).setValue(rp).addOnSuccessListener(aVoid -> {
+                Toast.makeText(this, "Регулярный платёж добавлен", Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
+            }).addOnFailureListener(e -> {
+                Toast.makeText(this, "Ошибка: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            });
+        });
+        dialog.show();
+    }
+
+    private void updateDateText(TextView tv, Calendar cal) {
+        tv.setText("Дата: " + String.format("%02d.%02d.%04d", cal.get(Calendar.DAY_OF_MONTH), cal.get(Calendar.MONTH)+1, cal.get(Calendar.YEAR)));
+    }
+    private void updateTimeText(TextView tv, Calendar cal) {
+        tv.setText("Время: " + String.format("%02d:%02d", cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE)));
     }
 } 

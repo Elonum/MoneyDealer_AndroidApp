@@ -1,24 +1,27 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="25dp"
-    android:height="25dp"
-    android:viewportWidth="25"
-    android:viewportHeight="25">
+    android:width="30dp"
+    android:height="30dp"
+    android:viewportWidth="30"
+    android:viewportHeight="30">
   <path
-      android:pathData="M8.333,10.417C9.461,9.618 10.498,8.574 11.919,8.374C12.814,8.248 13.725,8.416 14.516,8.853C15.306,9.29 15.934,9.973 16.303,10.797C16.672,11.622 16.763,12.544 16.563,13.425C16.362,14.305 15.881,15.097 15.191,15.681C14.502,16.264 13.641,16.608 12.739,16.66C11.837,16.712 10.943,16.469 10.191,15.969C9.439,15.468 8.87,14.737 8.569,13.885"
+      android:pathData="M15,15m-15,0a15,15 0,1 1,30 0a15,15 0,1 1,-30 0"
+      android:fillColor="#FF7F00"/>
+  <path
+      android:pathData="M11,13C12.083,12.233 13.078,11.231 14.442,11.039C15.301,10.918 16.176,11.08 16.935,11.499C17.694,11.919 18.296,12.574 18.651,13.365C19.005,14.157 19.093,15.042 18.9,15.888C18.708,16.733 18.246,17.493 17.584,18.053C16.922,18.614 16.095,18.944 15.23,18.993C14.364,19.043 13.505,18.81 12.783,18.33C12.061,17.849 11.515,17.147 11.227,16.329"
       android:strokeLineJoin="round"
       android:strokeWidth="1.5"
       android:fillColor="#00000000"
       android:strokeColor="#ffffff"
       android:strokeLineCap="round"/>
   <path
-      android:pathData="M8.333,7.292V10.417H11.458"
+      android:pathData="M11,10V13H14"
       android:strokeLineJoin="round"
       android:strokeWidth="1.5"
       android:fillColor="#00000000"
       android:strokeColor="#ffffff"
       android:strokeLineCap="round"/>
   <path
-      android:pathData="M12.5,21.875C17.678,21.875 21.875,17.678 21.875,12.5C21.875,7.322 17.678,3.125 12.5,3.125C7.322,3.125 3.125,7.322 3.125,12.5C3.125,17.678 7.322,21.875 12.5,21.875Z"
+      android:pathData="M15,24C19.971,24 24,19.971 24,15C24,10.029 19.971,6 15,6C10.029,6 6,10.029 6,15C6,19.971 10.029,24 15,24Z"
       android:strokeLineJoin="round"
       android:strokeWidth="1.5"
       android:fillColor="#00000000"

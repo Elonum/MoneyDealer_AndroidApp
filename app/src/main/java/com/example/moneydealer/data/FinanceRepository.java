@@ -18,6 +18,7 @@ public class FinanceRepository {
             new Category("", "Еда",          0xFFFF8800, "expense"),
             new Category("", "Транспорт",    0xFF4CAF50, "expense"),
             new Category("", "Развлечения",  0xFF2196F3, "expense"),
+
             new Category("", "Зарплата",     0xFF4CAF50, "income"),
             new Category("", "Прочие доходы",0xFFFFC107,"income")
     );
