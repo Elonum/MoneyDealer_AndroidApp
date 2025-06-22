@@ -166,7 +166,7 @@ public class CategoryWindow extends AppCompatActivity {
                     Category cat = catSnap.getValue(Category.class);
                     if (cat != null) categories.add(cat);
                 }
-                adapter = new CategoryAdapter(CategoryWindow.this, categories, CategoryWindow.this::onDeleteCategoryWithDialog) {
+                adapter = new CategoryAdapter(CategoryWindow.this, categories, CategoryWindow.this::onDeleteCategoryWithDialog, CategoryWindow.this::showEditCategoryDialog) {
                     @Override
                     public int getItemCount() {
                         int count = 0;
@@ -288,6 +288,86 @@ public class CategoryWindow extends AppCompatActivity {
             Category cat = new Category(id, name, selectedColor, type);
             categoriesRef.child(id).setValue(cat);
             dialog.dismiss();
+        });
+
+        dialog.show();
+    }
+
+    private void showEditCategoryDialog(Category category) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_add_category, null);
+        EditText etCategoryName = dialogView.findViewById(R.id.etCategoryName);
+        LinearLayout colorPicker = dialogView.findViewById(R.id.colorPicker);
+        Button btnSave = dialogView.findViewById(R.id.btnSaveCategory);
+        RadioGroup rgType = dialogView.findViewById(R.id.rgCategoryType);
+
+        etCategoryName.setText(category.name);
+        int initialColor = category.color;
+        selectedColor = initialColor;
+        // Динамически добавляем цветные круги
+        colorPicker.removeAllViews();
+        for (int color : COLORS) {
+            View colorView = new View(this);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(64, 64);
+            lp.setMargins(12, 0, 12, 0);
+            colorView.setLayoutParams(lp);
+            Drawable bg = getResources().getDrawable(R.drawable.bg_category_circle).mutate();
+            bg.setColorFilter(color, PorterDuff.Mode.SRC_IN);
+            colorView.setBackground(bg);
+            colorView.setClickable(true);
+            colorView.setFocusable(true);
+            colorView.setOnClickListener(v -> {
+                selectedColor = color;
+                for (int i = 0; i < colorPicker.getChildCount(); i++) {
+                    colorPicker.getChildAt(i).setAlpha(0.5f);
+                }
+                v.setAlpha(1f);
+            });
+            colorView.setAlpha(color == selectedColor ? 1f : 0.5f);
+            colorPicker.addView(colorView);
+        }
+
+        // Установить тип и заблокировать изменение
+        RadioButton rbExpense = dialogView.findViewById(R.id.rbExpense);
+        RadioButton rbIncome = dialogView.findViewById(R.id.rbIncome);
+        if (category.type != null && category.type.equals("income")) {
+            rgType.check(rbIncome.getId());
+        } else {
+            rgType.check(rbExpense.getId());
+        }
+        rgType.setEnabled(false);
+        rbExpense.setEnabled(false);
+        rbIncome.setEnabled(false);
+
+        builder.setView(dialogView);
+        AlertDialog dialog = builder.create();
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(ContextCompat.getColor(this, R.color.background_color)));
+
+        btnSave.setText("Сохранить");
+        btnSave.setOnClickListener(v -> {
+            String name = etCategoryName.getText().toString().trim();
+            if (TextUtils.isEmpty(name)) {
+                etCategoryName.setError("Введите название");
+                return;
+            }
+            for (Category cat : categories) {
+                if (!cat.id.equals(category.id) && cat.name.replaceAll("\\s+", "").equalsIgnoreCase(name.replaceAll("\\s+", ""))) {
+                    etCategoryName.setError("Такая категория уже есть");
+                    return;
+                }
+            }
+            // Тип не меняем, сохраняем старый
+            String type = category.type;
+            new AlertDialog.Builder(this)
+                .setTitle("Сохранить изменения?")
+                .setMessage("Вы уверены, что хотите изменить категорию?")
+                .setPositiveButton("Сохранить", (d, w) -> {
+                    Category updated = new Category(category.id, name, selectedColor, type);
+                    categoriesRef.child(category.id).setValue(updated);
+                    dialog.dismiss();
+                })
+                .setNegativeButton("Отмена", null)
+                .show();
         });
 
         dialog.show();

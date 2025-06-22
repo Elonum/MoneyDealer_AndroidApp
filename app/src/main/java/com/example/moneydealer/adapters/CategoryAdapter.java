@@ -15,16 +15,22 @@ import java.util.List;
 public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.CategoryViewHolder> {
     private List<Category> categories;
     private OnCategoryDeleteListener deleteListener;
+    private OnCategoryEditListener editListener;
     private Context context;
 
     public interface OnCategoryDeleteListener {
         void onDelete(Category category);
     }
 
-    public CategoryAdapter(Context context, List<Category> categories, OnCategoryDeleteListener deleteListener) {
+    public interface OnCategoryEditListener {
+        void onEdit(Category category);
+    }
+
+    public CategoryAdapter(Context context, List<Category> categories, OnCategoryDeleteListener deleteListener, OnCategoryEditListener editListener) {
         this.context = context;
         this.categories = categories;
         this.deleteListener = deleteListener;
+        this.editListener = editListener;
     }
 
     @NonNull
@@ -43,6 +49,10 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
         holder.itemView.setOnLongClickListener(v -> {
             if (deleteListener != null) deleteListener.onDelete(category);
             return true;
+        });
+
+        holder.itemView.setOnClickListener(v -> {
+            if (editListener != null) editListener.onEdit(category);
         });
 
         holder.itemView.setAlpha(0f);
