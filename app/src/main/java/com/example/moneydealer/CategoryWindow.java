@@ -60,14 +60,36 @@ public class CategoryWindow extends AppCompatActivity {
     private FirebaseUser currentUser;
 
     private final int[] COLORS = new int[] {
-            0xFFFF8000, // Orange
-            0xFF4CAF50, // Green
-            0xFF2196F3, // Blue
-            0xFFFFC107, // Yellow
-            0xFFE91E63, // Pink
-            0xFF9C27B0, // Purple
-            0xFF607D8B, // Gray
-            0xFF795548  // Brown
+            0xFFFF0000, // Красный
+            0xFFFF3300, // Красно-оранжевый
+            0xFFFF6600, // Оранжевый
+            0xFFFF9900, // Желто-оранжевый
+            0xFFFFCC00, // Золотистый
+            0xFFFFFF00, // Ярко-желтый
+            0xFFCCFF00, // Лаймовый
+            0xFF99FF00, // Желто-зеленый
+            0xFF66FF00, // Салатовый
+            0xFF33FF00, // Неоново-зеленый
+            0xFF00FF00, // Чистый зеленый
+            0xFF00FF33, // Изумрудно-зеленый
+            0xFF00FF66, // Мятный
+            0xFF00FF99, // Бирюзово-зеленый
+            0xFF00FFCC, // Аквамариновый
+            0xFF00FFFF, // Циан
+            0xFF00CCFF, // Небесно-голубой
+            0xFF0099FF, // Лазурный
+            0xFF0066FF, // Ярко-синий
+            0xFF0033FF, // Темно-синий
+            0xFF0000FF, // Чистый синий
+            0xFF3300FF, // Индиго
+            0xFF6600FF, // Фиолетово-синий
+            0xFF9900FF, // Фиолетовый
+            0xFFCC00FF, // Пурпурный
+            0xFFFF00FF, // Маджента
+            0xFFFF00CC, // Розово-фиолетовый
+            0xFFFF0099, // Фуксия
+            0xFFFF0066, // Ярко-розовый
+            0xFFFF0033  // Розово-красный
     };
 
     private int selectedColor = COLORS[0];
@@ -243,27 +265,42 @@ public class CategoryWindow extends AppCompatActivity {
         Button btnSave = dialogView.findViewById(R.id.btnSaveCategory);
         RadioGroup rgType = dialogView.findViewById(R.id.rgCategoryType);
 
-        // Динамически добавляем цветные круги
-        for (int color : COLORS) {
-            View colorView = new View(this);
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(64, 64);
-            lp.setMargins(12, 0, 12, 0);
-            colorView.setLayoutParams(lp);
-            Drawable bg = getResources().getDrawable(R.drawable.bg_category_circle).mutate();
-            bg.setColorFilter(color, PorterDuff.Mode.SRC_IN);
-            colorView.setBackground(bg);
-            colorView.setClickable(true);
-            colorView.setFocusable(true);
-            colorView.setOnClickListener(v -> {
-                selectedColor = color;
-                // Подсветка выбранного круга
-                for (int i = 0; i < colorPicker.getChildCount(); i++) {
-                    colorPicker.getChildAt(i).setAlpha(0.5f);
-                }
-                v.setAlpha(1f);
-            });
-            colorView.setAlpha(color == selectedColor ? 1f : 0.5f);
-            colorPicker.addView(colorView);
+        // Очищаем colorPicker и делаем его вертикальным
+        colorPicker.setOrientation(LinearLayout.VERTICAL);
+        colorPicker.removeAllViews();
+        int colorsPerRow = 6;
+        int totalRows = (int) Math.ceil((double) COLORS.length / colorsPerRow);
+        int colorIdx = 0;
+        for (int row = 0; row < totalRows; row++) {
+            LinearLayout rowLayout = new LinearLayout(this);
+            rowLayout.setOrientation(LinearLayout.HORIZONTAL);
+            rowLayout.setGravity(android.view.Gravity.CENTER);
+            for (int col = 0; col < colorsPerRow && colorIdx < COLORS.length; col++, colorIdx++) {
+                int color = COLORS[colorIdx];
+                View colorView = new View(this);
+                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(64, 64);
+                lp.setMargins(12, 12, 12, 12);
+                colorView.setLayoutParams(lp);
+                Drawable bg = getResources().getDrawable(R.drawable.bg_category_circle).mutate();
+                bg.setColorFilter(color, PorterDuff.Mode.SRC_IN);
+                colorView.setBackground(bg);
+                colorView.setClickable(true);
+                colorView.setFocusable(true);
+                colorView.setOnClickListener(v -> {
+                    selectedColor = color;
+                    // Подсветка выбранного круга
+                    for (int i = 0; i < colorPicker.getChildCount(); i++) {
+                        LinearLayout rowL = (LinearLayout) colorPicker.getChildAt(i);
+                        for (int j = 0; j < rowL.getChildCount(); j++) {
+                            rowL.getChildAt(j).setAlpha(0.5f);
+                        }
+                    }
+                    v.setAlpha(1f);
+                });
+                colorView.setAlpha(color == selectedColor ? 1f : 0.5f);
+                rowLayout.addView(colorView);
+            }
+            colorPicker.addView(rowLayout);
         }
 
         builder.setView(dialogView);
@@ -304,27 +341,40 @@ public class CategoryWindow extends AppCompatActivity {
         etCategoryName.setText(category.name);
         int initialColor = category.color;
         selectedColor = initialColor;
-        // Динамически добавляем цветные круги
+        colorPicker.setOrientation(LinearLayout.VERTICAL);
         colorPicker.removeAllViews();
-        for (int color : COLORS) {
-            View colorView = new View(this);
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(64, 64);
-            lp.setMargins(12, 0, 12, 0);
-            colorView.setLayoutParams(lp);
-            Drawable bg = getResources().getDrawable(R.drawable.bg_category_circle).mutate();
-            bg.setColorFilter(color, PorterDuff.Mode.SRC_IN);
-            colorView.setBackground(bg);
-            colorView.setClickable(true);
-            colorView.setFocusable(true);
-            colorView.setOnClickListener(v -> {
-                selectedColor = color;
-                for (int i = 0; i < colorPicker.getChildCount(); i++) {
-                    colorPicker.getChildAt(i).setAlpha(0.5f);
-                }
-                v.setAlpha(1f);
-            });
-            colorView.setAlpha(color == selectedColor ? 1f : 0.5f);
-            colorPicker.addView(colorView);
+        int colorsPerRow = 6;
+        int totalRows = (int) Math.ceil((double) COLORS.length / colorsPerRow);
+        int colorIdx = 0;
+        for (int row = 0; row < totalRows; row++) {
+            LinearLayout rowLayout = new LinearLayout(this);
+            rowLayout.setOrientation(LinearLayout.HORIZONTAL);
+            rowLayout.setGravity(android.view.Gravity.CENTER);
+            for (int col = 0; col < colorsPerRow && colorIdx < COLORS.length; col++, colorIdx++) {
+                int color = COLORS[colorIdx];
+                View colorView = new View(this);
+                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(64, 64);
+                lp.setMargins(12, 12, 12, 12);
+                colorView.setLayoutParams(lp);
+                Drawable bg = getResources().getDrawable(R.drawable.bg_category_circle).mutate();
+                bg.setColorFilter(color, PorterDuff.Mode.SRC_IN);
+                colorView.setBackground(bg);
+                colorView.setClickable(true);
+                colorView.setFocusable(true);
+                colorView.setOnClickListener(v -> {
+                    selectedColor = color;
+                    for (int i = 0; i < colorPicker.getChildCount(); i++) {
+                        LinearLayout rowL = (LinearLayout) colorPicker.getChildAt(i);
+                        for (int j = 0; j < rowL.getChildCount(); j++) {
+                            rowL.getChildAt(j).setAlpha(0.5f);
+                        }
+                    }
+                    v.setAlpha(1f);
+                });
+                colorView.setAlpha(color == selectedColor ? 1f : 0.5f);
+                rowLayout.addView(colorView);
+            }
+            colorPicker.addView(rowLayout);
         }
 
         // Установить тип и заблокировать изменение

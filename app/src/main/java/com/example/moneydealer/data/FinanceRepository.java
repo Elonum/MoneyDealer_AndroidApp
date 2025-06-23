@@ -15,12 +15,19 @@ public class FinanceRepository {
     private final DatabaseReference rootRef;
 
     private static final List<Category> DEFAULT_CATEGORIES = Arrays.asList(
-            new Category("", "Еда",          0xFFFF8800, "expense"),
-            new Category("", "Транспорт",    0xFF4CAF50, "expense"),
-            new Category("", "Развлечения",  0xFF2196F3, "expense"),
+            new Category("", "Жильё", 0xFFFF0000, "expense"),              // Красный
+            new Category("", "Еда", 0xFFFF6600, "expense"),                // Оранжевый
+            new Category("", "Транспорт", 0xFFFFFF00, "expense"),          // Ярко-желтый
+            new Category("", "Здоровье", 0xFF00FF00, "expense"),           // Чистый зеленый
+            new Category("", "Связь", 0xFF00FFFF, "expense"),              // Циан
+            new Category("", "Развлечения", 0xFF0066FF, "expense"),        // Ярко-синий
+            new Category("", "Подарки", 0xFF6600FF, "expense"),            // Фиолетово-синий
+            new Category("", "Благотворительность", 0xFFFF00FF, "expense"),// Маджента
 
-            new Category("", "Зарплата",     0xFF4CAF50, "income"),
-            new Category("", "Прочие доходы",0xFFFFC107,"income")
+            new Category("", "Зарплата", 0xFF33FF00, "income"),            // Неоново-зеленый
+            new Category("", "Фриланс", 0xFFFFCC00, "income"),            // Золотистый
+            new Category("", "Кэшбэк", 0xFF00FF99, "income"),              // Бирюзово-зеленый
+            new Category("", "Подарки", 0xFF9900FF, "income")             // Фиолетовый
     );
 
     public FinanceRepository() {
