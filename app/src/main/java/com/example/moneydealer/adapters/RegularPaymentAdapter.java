@@ -52,7 +52,8 @@ public class RegularPaymentAdapter extends RecyclerView.Adapter<RegularPaymentAd
         holder.tvName.setText(typeStr + " - " + catName);
         holder.tvAmount.setText(String.format("%.2f", payment.amount) + " " + getAccountCurrency(payment.accountId));
         java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd.MM.yyyy HH:mm");
-        holder.tvDate.setText("Следующий: " + sdf.format(new java.util.Date(payment.startTimestamp)));
+        long nextDate = getNextPaymentTimestamp(payment);
+        holder.tvDate.setText("Следующий: " + sdf.format(new java.util.Date(nextDate)));
         holder.btnEdit.setOnClickListener(v -> listener.onEditClick(payment));
         holder.btnDelete.setOnClickListener(v -> listener.onDeleteClick(payment));
         // Анимация появления
@@ -66,6 +67,19 @@ public class RegularPaymentAdapter extends RecyclerView.Adapter<RegularPaymentAd
             .setDuration(500)
             .setStartDelay(position * 60)
             .start();
+    }
+
+    private long getNextPaymentTimestamp(RegularPayment payment) {
+        long last = payment.lastAppliedTimestamp > 0 ? payment.lastAppliedTimestamp : payment.startTimestamp;
+        java.util.Calendar cal = java.util.Calendar.getInstance();
+        cal.setTimeInMillis(last);
+        switch (payment.period) {
+            case "Каждый день": cal.add(java.util.Calendar.DAY_OF_YEAR, 1); break;
+            case "Каждую неделю": cal.add(java.util.Calendar.WEEK_OF_YEAR, 1); break;
+            case "Каждый месяц": cal.add(java.util.Calendar.MONTH, 1); break;
+            case "Каждый год": cal.add(java.util.Calendar.YEAR, 1); break;
+        }
+        return cal.getTimeInMillis();
     }
 
     private String getAccountCurrency(String accountId) {

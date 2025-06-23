@@ -185,6 +185,10 @@ public class TransactionWindow extends AppCompatActivity {
                 } else if (selectedPeriod.equals("week")) {
                     add = cal.get(Calendar.YEAR) == txCal.get(Calendar.YEAR) &&
                           cal.get(Calendar.WEEK_OF_YEAR) == txCal.get(Calendar.WEEK_OF_YEAR);
+                    if (!add) {
+                        long diff = Math.abs(now - tx.timestamp);
+                        if (diff < 7L * 24 * 60 * 60 * 1000) add = true;
+                    }
                 } else if (selectedPeriod.equals("month")) {
                     add = cal.get(Calendar.YEAR) == txCal.get(Calendar.YEAR) &&
                           cal.get(Calendar.MONTH) == txCal.get(Calendar.MONTH);

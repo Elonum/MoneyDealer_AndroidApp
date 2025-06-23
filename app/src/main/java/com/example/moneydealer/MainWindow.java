@@ -102,6 +102,9 @@ public class MainWindow extends AppCompatActivity {
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
         usersRef = FirebaseDatabase.getInstance().getReference("users");
 
+        // --- Автоматическое создание транзакций по регулярным платежам ---
+        checkAndApplyRegularPayments();
+
         loadUserCurrencyAndAccounts();
 
         // --- Navigation Drawer ---
@@ -115,8 +118,6 @@ public class MainWindow extends AppCompatActivity {
         percentBarContainer = findViewById(R.id.percentBarContainer);
 
         MaterialButtonToggleGroup toggleType = findViewById(R.id.toggleType);
-        Button btnExpenses = findViewById(R.id.btnExpenses);
-        Button btnIncome = findViewById(R.id.btnIncome);
         // Восстанавливаем выбранный тип из prefs
         selectedType = prefs.getString("selected_type", "expense");
         if ("income".equals(selectedType)) {
@@ -175,13 +176,13 @@ public class MainWindow extends AppCompatActivity {
                     }
                     @Override
                     public void onError(DatabaseError error) {
-                        // TODO: показать ошибку
+                        Toast.makeText(MainWindow.this, "Ошибка загрузки транзакций: " + error.getMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
             }
             @Override
             public void onError(DatabaseError error) {
-                // TODO: показать ошибку
+                Toast.makeText(MainWindow.this, "Ошибка загрузки категорий: " + error.getMessage(), Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -513,7 +514,7 @@ public class MainWindow extends AppCompatActivity {
                 return;
             }
             long timestamp = selectedCopy.getTimeInMillis();
-            Transaction tx = new Transaction(null, selectedAccount.id, amount, cat.id, selectedType, timestamp, comment);
+            Transaction tx = new Transaction(null, selectedAccount.id, amount, cat.id, selectedType, timestamp, comment, null);
             repo.addTransaction(tx);
             allTransactions.add(tx);
             // --- Обновление баланса счета в Firebase ---
@@ -545,5 +546,90 @@ public class MainWindow extends AppCompatActivity {
     private void updateTimeText(TextView tv, Calendar cal) {
         java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault());
         tv.setText("Время: " + sdf.format(cal.getTime()));
+    }
+
+    // --- Логика автоматического создания транзакций по регулярным платежам ---
+    private void checkAndApplyRegularPayments() {
+        if (currentUser == null) return;
+        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(currentUser.getUid());
+        DatabaseReference regularPaymentsRef = userRef.child("regular_payments");
+        DatabaseReference transactionsRef = userRef.child("transactions");
+        regularPaymentsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                for (DataSnapshot snap : snapshot.getChildren()) {
+                    com.example.moneydealer.models.RegularPayment rp = snap.getValue(com.example.moneydealer.models.RegularPayment.class);
+                    if (rp == null) continue;
+                    long now = System.currentTimeMillis();
+                    long last = rp.lastAppliedTimestamp;
+                    // --- Исправление: создаём первую транзакцию на дату старта, если она уже прошла ---
+                    if (last == 0) {
+                        if (now >= rp.startTimestamp) {
+                            com.example.moneydealer.models.Transaction tx = new com.example.moneydealer.models.Transaction(
+                                null,
+                                rp.accountId,
+                                rp.amount,
+                                rp.categoryId,
+                                rp.type,
+                                rp.startTimestamp,
+                                rp.comment,
+                                rp.id
+                            );
+                            String txId = transactionsRef.push().getKey();
+                            if (txId != null) {
+                                transactionsRef.child(txId).setValue(tx);
+                                last = rp.startTimestamp;
+                                regularPaymentsRef.child(rp.id).child("lastAppliedTimestamp").setValue(last);
+                            }
+                        } else {
+                            // дата старта ещё не наступила — ничего не делаем
+                            continue;
+                        }
+                    }
+                    // --- Далее обычный цикл для следующих периодов ---
+                    while (true) {
+                        long next = getNextTimestamp(last, rp.period);
+                        if (now >= next) {
+                            com.example.moneydealer.models.Transaction tx = new com.example.moneydealer.models.Transaction(
+                                null,
+                                rp.accountId,
+                                rp.amount,
+                                rp.categoryId,
+                                rp.type,
+                                next,
+                                rp.comment,
+                                rp.id
+                            );
+                            String txId = transactionsRef.push().getKey();
+                            if (txId != null) {
+                                transactionsRef.child(txId).setValue(tx);
+                                last = next;
+                                regularPaymentsRef.child(rp.id).child("lastAppliedTimestamp").setValue(last);
+                            } else {
+                                break;
+                            }
+                        } else {
+                            break;
+                        }
+                    }
+                }
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                android.util.Log.e("REGULAR", "Ошибка чтения регулярных платежей: " + error.getMessage());
+            }
+        });
+    }
+
+    private long getNextTimestamp(long last, String period) {
+        java.util.Calendar cal = java.util.Calendar.getInstance();
+        cal.setTimeInMillis(last);
+        switch (period) {
+            case "Каждый день": cal.add(java.util.Calendar.DAY_OF_YEAR, 1); break;
+            case "Каждую неделю": cal.add(java.util.Calendar.WEEK_OF_YEAR, 1); break;
+            case "Каждый месяц": cal.add(java.util.Calendar.MONTH, 1); break;
+            case "Каждый год": cal.add(java.util.Calendar.YEAR, 1); break;
+        }
+        return cal.getTimeInMillis();
     }
 }
