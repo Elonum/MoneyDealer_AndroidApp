@@ -9,9 +9,11 @@
   <img src="screenshots/welcome_window_1.png" width="200"/>
   <img src="screenshots/welcome_window_2.png" width="200"/>
   <img src="screenshots/welcome_window_3.png" width="200"/>
+  <img src="screenshots/currency_window.png" width="200"/>
   <img src="screenshots/main_window.png" width="200"/>
+  <img src="screenshots/account_window.png" width="200"/>
   <img src="screenshots/categories_window.png" width="200"/>
-  <img src="screenshots/regular_paymnet_window.png" width="200"/>
+  <img src="screenshots/regular_payment_window.png" width="200"/>
 </p>
 
 ## 🚀 Возможности
