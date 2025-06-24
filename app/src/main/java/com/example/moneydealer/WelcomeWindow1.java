@@ -16,6 +16,14 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
 public class WelcomeWindow1 extends AppCompatActivity {
 
     private OnSwipeTouchListener onSwipeTouchListener;
@@ -31,6 +39,42 @@ public class WelcomeWindow1 extends AppCompatActivity {
             return insets;
         });
 
+        View contentLayout = findViewById(R.id.contentLayout);
+        View progressBar = findViewById(R.id.progressBar);
+        contentLayout.setVisibility(View.GONE);
+        progressBar.setVisibility(View.VISIBLE);
+
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        FirebaseUser user = auth.getCurrentUser();
+        if (user != null) {
+            DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users");
+            usersRef.child(user.getUid()).child("selectedCurrency")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot snapshot) {
+                        String currency = snapshot.getValue(String.class);
+                        Intent intent;
+                        if (currency != null && !currency.isEmpty()) {
+                            intent = new Intent(WelcomeWindow1.this, MainWindow.class);
+                            intent.putExtra("selectedCurrency", currency);
+                        } else {
+                            intent = new Intent(WelcomeWindow1.this, CurrencyWindow.class);
+                        }
+                        startActivity(intent);
+                        finish();
+                    }
+                    @Override
+                    public void onCancelled(DatabaseError error) {
+                        Intent intent = new Intent(WelcomeWindow1.this, CurrencyWindow.class);
+                        startActivity(intent);
+                        finish();
+                    }
+                });
+            return;
+        }
+        // Если не авторизован — показываем основной контент, скрываем ProgressBar
+        contentLayout.setVisibility(View.VISIBLE);
+        progressBar.setVisibility(View.GONE);
         setupNavigation();
         setupAnimations();
         setupTextAnimations();

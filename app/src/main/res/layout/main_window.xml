@@ -54,6 +54,7 @@
             app:cornerRadius="16dp"
             app:singleSelection="true"
             app:checkedButton="@id/btnExpenses"
+            app:selectionRequired="true"
             app:layout_constraintTop_toBottomOf="@id/topBar"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
@@ -143,6 +144,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="250dp"
                 android:layout_marginTop="8dp"
+                android:padding="10dp"
                 android:background="@drawable/rounded_border_percent_bar"
                 android:scrollbars="none"
                 android:importantForAccessibility="no">

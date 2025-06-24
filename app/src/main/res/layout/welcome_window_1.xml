@@ -9,66 +9,91 @@
     android:id="@+id/main"
     tools:context=".WelcomeWindow1">
 
-    <ImageView
-        android:id="@+id/iv_app_logo"
-        android:layout_width="150dp"
-        android:layout_height="150dp"
-        android:src="@drawable/md_logo"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:visibility="gone"
         app:layout_constraintTop_toTopOf="parent"
-        android:contentDescription="App Logo" />
-
-    <TextView
-        android:id="@+id/tv_app_title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="MONEY DEALER"
-        android:textColor="@android:color/white"
-        android:textSize="32sp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/iv_app_logo" />
+        app:layout_constraintEnd_toEndOf="parent"/>
 
-    <TextView
-        android:id="@+id/tv_section_title"
+    <LinearLayout
+        android:id="@+id/contentLayout"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="1. Управление счетами и операциями"
-        android:textColor="@color/welcome_orange"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:layout_marginStart="32dp"
-        android:layout_marginEnd="32dp"
-        android:layout_marginTop="48dp"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        android:background="@android:color/transparent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tv_app_title" />
+        app:layout_constraintEnd_toEndOf="parent">
 
-    <TextView
-        android:id="@+id/tv_section_description"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="Создавайте счета, добавляйте доходы и расходы, просматривайте полную историю транзакций — всё для полного контроля над вашими финансами."
-        android:textColor="@android:color/white"
-        android:textSize="18sp"
-        android:layout_marginStart="32dp"
-        android:layout_marginEnd="32dp"
-        android:layout_marginTop="8dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tv_section_title" />
+        <ImageView
+            android:id="@+id/iv_app_logo"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:src="@drawable/md_logo"
+            android:contentDescription="App Logo"
+            android:layout_gravity="center_horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-    <ImageView
-        android:id="@+id/category_cash_account_ic"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:layout_marginTop="50dp"
-        android:src="@drawable/category_cash_account_ic"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tv_section_description"/>
+        <TextView
+            android:id="@+id/tv_app_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="MONEY DEALER"
+            android:textColor="@android:color/white"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:layout_gravity="center_horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/iv_app_logo" />
+
+        <TextView
+            android:id="@+id/tv_section_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="1. Управление счетами и операциями"
+            android:textColor="@color/welcome_orange"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:layout_marginStart="32dp"
+            android:layout_marginEnd="32dp"
+            android:layout_marginTop="48dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_app_title" />
+
+        <TextView
+            android:id="@+id/tv_section_description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Создавайте счета, добавляйте доходы и расходы, просматривайте полную историю транзакций — всё для полного контроля над вашими финансами."
+            android:textColor="@android:color/white"
+            android:textSize="18sp"
+            android:layout_marginStart="32dp"
+            android:layout_marginEnd="32dp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_section_title" />
+
+        <ImageView
+            android:id="@+id/category_cash_account_ic"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_marginTop="50dp"
+            android:src="@drawable/category_cash_account_ic"
+            android:layout_gravity="center_horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_section_description"/>
+    </LinearLayout>
 
     <Button
         android:id="@+id/btn_next"
@@ -90,6 +115,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:layout_marginBottom="32dp"
+        android:layout_gravity="center_horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">

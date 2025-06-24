@@ -118,13 +118,10 @@ public class MainWindow extends AppCompatActivity {
         percentBarContainer = findViewById(R.id.percentBarContainer);
 
         MaterialButtonToggleGroup toggleType = findViewById(R.id.toggleType);
-        // Восстанавливаем выбранный тип из prefs
-        selectedType = prefs.getString("selected_type", "expense");
-        if ("income".equals(selectedType)) {
-            toggleType.check(R.id.btnIncome);
-        } else {
-            toggleType.check(R.id.btnExpenses);
-        }
+        // ВСЕГДА по умолчанию выбираем расходы
+        selectedType = "expense";
+        prefs.edit().putString("selected_type", selectedType).apply();
+        toggleType.check(R.id.btnExpenses);
         toggleType.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
             if (isChecked) {
                 if (checkedId == R.id.btnExpenses) {
@@ -150,14 +147,11 @@ public class MainWindow extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // Восстанавливаем выбранный тип из prefs
-        selectedType = prefs.getString("selected_type", "expense");
+        // ВСЕГДА по умолчанию выбираем расходы
+        selectedType = "expense";
+        prefs.edit().putString("selected_type", selectedType).apply();
         MaterialButtonToggleGroup toggleType = findViewById(R.id.toggleType);
-        if ("income".equals(selectedType)) {
-            toggleType.check(R.id.btnIncome);
-        } else {
-            toggleType.check(R.id.btnExpenses);
-        }
+        toggleType.check(R.id.btnExpenses);
         updateCategoryBar();
     }
 
@@ -344,6 +338,7 @@ public class MainWindow extends AppCompatActivity {
             selectedAccount = accounts.get(0);
         }
         updateHeader();
+        updateCategoryBar();
     }
 
     private void updateHeader() {
